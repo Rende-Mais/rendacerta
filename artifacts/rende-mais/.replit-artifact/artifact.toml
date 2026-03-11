@@ -1,0 +1,27 @@
+kind = "mobile"
+previewPath = "/"
+title = "RendeMais"
+version = "1.0.0"
+id = "artifacts/rende-mais"
+router = "expo-domain"
+
+[[integratedSkills]]
+name = "expo"
+version = "1.0.0"
+
+[[services]]
+ensurePreviewReachable = "/status"
+localPort = 18127
+name = "expo"
+paths = ["/"]
+
+[services.development]
+run = "pnpm --filter @workspace/rende-mais run dev"
+
+[services.env]
+PORT = "18127"
+BASE_PATH = "/"
+
+[services.production]
+build = ["pnpm", "--filter", "@workspace/rende-mais", "run", "build"]
+run = ["pnpm", "--filter", "@workspace/rende-mais", "run", "serve"]
