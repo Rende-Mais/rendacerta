@@ -5,16 +5,14 @@ import {
   StyleSheet,
   TouchableOpacity,
   Animated,
-  Platform,
 } from 'react-native';
 import { router } from 'expo-router';
 import * as Haptics from 'expo-haptics';
 import { Feather } from '@expo/vector-icons';
-import { Bank, calculateReturn, formatCurrency, INVESTMENT_LABELS } from '@/constants/data';
-import { Colors, shadows } from '@/constants/colors';
+import { Bank, calculateReturn, formatCurrency } from '@/constants/data';
+import { Colors } from '@/constants/colors';
 import { BankLogo } from './BankLogo';
 import { LiquidityPill } from './LiquidityPill';
-import { Badge } from './ui/Badge';
 
 interface OfferCardProps {
   bank: Bank;
@@ -23,10 +21,10 @@ interface OfferCardProps {
   onInvestPress?: (bank: Bank) => void;
 }
 
-export function OfferCard({ bank, investmentAmount = 1000, index = 0, onInvestPress }: OfferCardProps) {
+export function OfferCard({ bank, investmentAmount = 1000, onInvestPress }: OfferCardProps) {
   const scale = useRef(new Animated.Value(1)).current;
 
-  const { net, monthly } = calculateReturn(investmentAmount, bank.cdiRate, 12, bank.hasTax);
+  const { monthly } = calculateReturn(investmentAmount, bank.cdiRate, 12, bank.hasTax);
 
   const handleCardPress = () => {
     Haptics.selectionAsync();
@@ -39,71 +37,73 @@ export function OfferCard({ bank, investmentAmount = 1000, index = 0, onInvestPr
   };
 
   const handlePressIn = () => {
-    Animated.spring(scale, { toValue: 0.98, useNativeDriver: true, speed: 20 }).start();
+    Animated.spring(scale, { toValue: 0.985, useNativeDriver: true, speed: 30 }).start();
   };
-
   const handlePressOut = () => {
-    Animated.spring(scale, { toValue: 1, useNativeDriver: true, speed: 20 }).start();
+    Animated.spring(scale, { toValue: 1, useNativeDriver: true, speed: 30 }).start();
   };
-
-  const isTopCard = bank.isRecommended;
 
   return (
-    <Animated.View style={[{ transform: [{ scale }] }]}>
+    <Animated.View style={{ transform: [{ scale }] }}>
       <TouchableOpacity
-        style={[
-          styles.card,
-          isTopCard && styles.topCard,
-        ]}
+        style={[styles.card, bank.isRecommended && styles.topCard]}
         onPress={handleCardPress}
         onPressIn={handlePressIn}
         onPressOut={handlePressOut}
         activeOpacity={1}
       >
-        {isTopCard && (
-          <View style={styles.recommendedBanner}>
-            <Feather name="star" size={12} color={Colors.white} />
-            <Text style={styles.recommendedText}>Indicação do Rende Mais</Text>
-          </View>
-        )}
-
-        <View style={styles.header}>
-          <BankLogo bank={bank} size={44} />
-          <View style={styles.bankInfo}>
+        {/* Top row */}
+        <View style={styles.topRow}>
+          <BankLogo bank={bank} size={40} />
+          <View style={styles.bankMeta}>
             <Text style={styles.bankName}>{bank.name}</Text>
-            <Text style={styles.investmentType}>{INVESTMENT_LABELS[bank.investmentType]}</Text>
+            <LiquidityPill type={bank.liquidity} />
           </View>
-          <Feather name="chevron-right" size={20} color={Colors.neutral[400]} />
+          {bank.isRecommended && (
+            <View style={styles.bestBadge}>
+              <Text style={styles.bestBadgeText}>Melhor</Text>
+            </View>
+          )}
         </View>
 
-        <View style={styles.rateSection}>
+        {/* Rate — the star of the show */}
+        <View style={styles.rateBlock}>
           <Text style={styles.rateValue}>{bank.cdiRate.toFixed(1)}%</Text>
-          <Text style={styles.rateLabel}>ao ano · {bank.cdiRate.toFixed(1)}% do CDI</Text>
+          <Text style={styles.rateUnit}>ao ano</Text>
         </View>
 
-        <View style={styles.projection}>
-          <Text style={styles.projectionValue}>
-            ≈ {formatCurrency(monthly)}/mês
-          </Text>
-          <Text style={styles.projectionNote}>
-            com {formatCurrency(investmentAmount)} investido por 12 meses
-          </Text>
+        {/* Projection — one clean line */}
+        <Text style={styles.projection}>
+          Rende{' '}
+          <Text style={styles.projectionHighlight}>≈ {formatCurrency(monthly)}/mês</Text>
+          {' '}com {formatCurrency(investmentAmount)}
+        </Text>
+
+        {/* Tags */}
+        <View style={styles.tags}>
+          {bank.fgcCovered && (
+            <View style={styles.tag}>
+              <Feather name="shield" size={11} color={Colors.fgc.badge} />
+              <Text style={[styles.tagText, { color: Colors.fgc.badge }]}>Protegido pelo governo</Text>
+            </View>
+          )}
+          {!bank.hasTax && (
+            <View style={[styles.tag, styles.tagGreen]}>
+              <Feather name="tag" size={11} color={Colors.brand[600]} />
+              <Text style={[styles.tagText, { color: Colors.brand[600] }]}>Sem imposto</Text>
+            </View>
+          )}
         </View>
 
-        <View style={styles.pills}>
-          <LiquidityPill type={bank.liquidity} />
-          {bank.fgcCovered && <Badge label="FGC protegido" variant="fgc" size="sm" />}
-          {!bank.hasTax && <Badge label="Sem IR" variant="brand" size="sm" />}
-        </View>
-
-        <View style={styles.divider} />
-
+        {/* CTA */}
         <TouchableOpacity
-          style={styles.investButton}
+          style={[styles.cta, bank.isRecommended && styles.ctaPrimary]}
           onPress={handleInvestPress}
-          activeOpacity={0.85}
+          activeOpacity={0.8}
         >
-          <Text style={styles.investButtonText}>Investir na {bank.shortName}</Text>
+          <Text style={[styles.ctaText, bank.isRecommended && styles.ctaTextPrimary]}>
+            Investir na {bank.shortName}
+          </Text>
         </TouchableOpacity>
       </TouchableOpacity>
     </Animated.View>
@@ -113,103 +113,111 @@ export function OfferCard({ bank, investmentAmount = 1000, index = 0, onInvestPr
 const styles = StyleSheet.create({
   card: {
     backgroundColor: Colors.white,
-    borderRadius: 16,
-    padding: 16,
-    marginBottom: 12,
-    ...shadows.level1,
+    borderRadius: 20,
+    padding: 20,
+    marginBottom: 14,
+    borderWidth: 1,
+    borderColor: Colors.neutral[100],
   },
   topCard: {
+    borderColor: Colors.brand[300],
     borderWidth: 1.5,
-    borderColor: Colors.brand[200],
-    ...shadows.level2,
   },
-  recommendedBanner: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 5,
-    backgroundColor: Colors.brand[500],
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-    borderRadius: 8,
-    alignSelf: 'flex-start',
-    marginBottom: 12,
-  },
-  recommendedText: {
-    color: Colors.white,
-    fontSize: 12,
-    fontFamily: 'Inter_600SemiBold',
-  },
-  header: {
+  topRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
+    marginBottom: 20,
   },
-  bankInfo: {
+  bankMeta: {
     flex: 1,
+    gap: 5,
   },
   bankName: {
-    fontSize: 16,
-    fontFamily: 'Inter_700Bold',
+    fontSize: 15,
+    fontFamily: 'Inter_600SemiBold',
     color: Colors.neutral[950],
   },
-  investmentType: {
-    fontSize: 12,
-    fontFamily: 'Inter_400Regular',
-    color: Colors.neutral[500],
-    marginTop: 1,
+  bestBadge: {
+    backgroundColor: Colors.brand[500],
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 999,
   },
-  rateSection: {
-    marginTop: 16,
+  bestBadgeText: {
+    fontSize: 11,
+    fontFamily: 'Inter_700Bold',
+    color: Colors.white,
+  },
+  rateBlock: {
     flexDirection: 'row',
     alignItems: 'baseline',
     gap: 6,
+    marginBottom: 8,
   },
   rateValue: {
-    fontSize: 34,
+    fontSize: 42,
     fontFamily: 'Inter_700Bold',
     color: Colors.brand[500],
-    letterSpacing: -1,
+    letterSpacing: -1.5,
+    lineHeight: 48,
   },
-  rateLabel: {
-    fontSize: 13,
+  rateUnit: {
+    fontSize: 15,
     fontFamily: 'Inter_400Regular',
-    color: Colors.neutral[500],
+    color: Colors.neutral[400],
   },
   projection: {
-    marginTop: 4,
+    fontSize: 14,
+    fontFamily: 'Inter_400Regular',
+    color: Colors.neutral[500],
+    marginBottom: 16,
   },
-  projectionValue: {
-    fontSize: 16,
+  projectionHighlight: {
     fontFamily: 'Inter_600SemiBold',
     color: Colors.neutral[950],
   },
-  projectionNote: {
-    fontSize: 11,
-    fontFamily: 'Inter_400Regular',
-    color: Colors.neutral[400],
-    marginTop: 2,
-  },
-  pills: {
+  tags: {
     flexDirection: 'row',
+    gap: 8,
+    marginBottom: 18,
     flexWrap: 'wrap',
-    gap: 6,
-    marginTop: 12,
   },
-  divider: {
-    height: 1,
-    backgroundColor: Colors.neutral[100],
-    marginVertical: 14,
+  tag: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    backgroundColor: Colors.fgc.light,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 999,
   },
-  investButton: {
-    backgroundColor: Colors.brand[500],
-    borderRadius: 12,
+  tagGreen: {
+    backgroundColor: Colors.brand[50],
+  },
+  tagText: {
+    fontSize: 12,
+    fontFamily: 'Inter_500Medium',
+  },
+  cta: {
+    borderRadius: 14,
     height: 48,
     alignItems: 'center',
     justifyContent: 'center',
+    backgroundColor: Colors.neutral[50],
+    borderWidth: 1,
+    borderColor: Colors.neutral[200],
   },
-  investButtonText: {
-    color: Colors.white,
+  ctaPrimary: {
+    backgroundColor: Colors.brand[500],
+    borderColor: Colors.brand[500],
+  },
+  ctaText: {
     fontSize: 15,
     fontFamily: 'Inter_600SemiBold',
+    color: Colors.neutral[700],
+  },
+  ctaTextPrimary: {
+    color: Colors.white,
   },
 });

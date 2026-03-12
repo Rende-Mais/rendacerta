@@ -8,34 +8,33 @@ interface LiquidityPillProps {
 }
 
 export function LiquidityPill({ type }: LiquidityPillProps) {
-  const { label, color } = LIQUIDITY_LABELS[type];
-
-  const bgColors = {
-    brand: Colors.brand[50],
-    neutral: Colors.neutral[100],
-    warning: Colors.warning.light,
-  };
-  const textColors = {
-    brand: Colors.brand[600],
-    neutral: Colors.neutral[700],
-    warning: Colors.warning.DEFAULT,
-  };
+  const { label } = LIQUIDITY_LABELS[type];
+  const isGood = type === 'D+0';
 
   return (
-    <View style={[styles.pill, { backgroundColor: bgColors[color] }]}>
-      <Text style={[styles.text, { color: textColors[color] }]}>{label}</Text>
+    <View style={[styles.pill, isGood && styles.pillGood]}>
+      <Text style={[styles.text, isGood && styles.textGood]}>{label}</Text>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   pill: {
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-    borderRadius: 999,
+    paddingHorizontal: 9,
+    paddingVertical: 4,
+    borderRadius: 6,
+    backgroundColor: Colors.neutral[100],
+    alignSelf: 'flex-start',
+  },
+  pillGood: {
+    backgroundColor: Colors.brand[50],
   },
   text: {
-    fontSize: 12,
+    fontSize: 11,
     fontFamily: 'Inter_500Medium',
+    color: Colors.neutral[500],
+  },
+  textGood: {
+    color: Colors.brand[600],
   },
 });
