@@ -12,12 +12,13 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { router } from 'expo-router';
 import { AppIcon } from '@/components/ui/AppIcon';
 import * as Haptics from 'expo-haptics';
-import { Colors } from '@/constants/colors';
+import { Colors, shadows } from '@/constants/colors';
 import { STORAGE_KEYS, UserProfile, AMOUNT_RANGES } from '@/constants/storage';
-import { CURRENT_CDI_RATE } from '@/constants/data';
+import { useAppData } from '@/providers/AppDataProvider';
 
 
 export default function PerfilScreen() {
+  const { currentCdiRate } = useAppData();
   const insets = useSafeAreaInsets();
   const [profile, setProfile] = useState<UserProfile | null>(null);
 
@@ -39,9 +40,17 @@ export default function PerfilScreen() {
           style: 'destructive',
           onPress: async () => {
             Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
-            await AsyncStorage.removeItem(STORAGE_KEYS.ONBOARDING_COMPLETE);
-            await AsyncStorage.removeItem(STORAGE_KEYS.USER_PROFILE);
-            router.replace('/(onboarding)/boas-vindas');
+            try {
+              await AsyncStorage.multiSet([
+                [STORAGE_KEYS.ONBOARDING_COMPLETE, 'false'],
+                [STORAGE_KEYS.USER_PROFILE, ''],
+              ]);
+              await AsyncStorage.removeItem(STORAGE_KEYS.USER_PROFILE);
+              setProfile(null);
+              router.replace('/(onboarding)/boas-vindas');
+            } catch {
+              Alert.alert('Erro', 'Nao foi possivel reiniciar o questionario agora.');
+            }
           },
         },
       ]
@@ -59,8 +68,8 @@ export default function PerfilScreen() {
 
   const getRiskLabel = () => {
     switch (profile?.riskPref) {
-      case 'taxa': return 'Maior taxa possivel';
-      case 'seguranca': return 'Seguranca em primeiro lugar';
+      case 'taxa': return 'Maior taxa possível';
+      case 'seguranca': return 'Segurança em primeiro lugar';
       default: return '-';
     }
   };
@@ -96,10 +105,10 @@ export default function PerfilScreen() {
         {/* Preferences */}
         {profile && (
           <View style={styles.section}>
-            <Text style={styles.sectionLabel}>Suas preferencias</Text>
+            <Text style={styles.sectionLabel}>Suas preferências</Text>
             <View style={styles.card}>
               <View style={styles.row}>
-                <Text style={styles.rowLabel}>Valor disponivel</Text>
+                <Text style={styles.rowLabel}>Valor disponível</Text>
                 <Text style={styles.rowValue}>
                   {profile.availableAmount ? AMOUNT_RANGES[profile.availableAmount].label : '-'}
                 </Text>
@@ -125,7 +134,7 @@ export default function PerfilScreen() {
             <View style={styles.ratesRow}>
               <View style={styles.rateItem}>
                 <Text style={styles.rateName}>CDI</Text>
-                <Text style={[styles.rateNum, { color: Colors.brand[500] }]}>{CURRENT_CDI_RATE}%</Text>
+                <Text style={[styles.rateNum, { color: Colors.brand[500] }]}>{currentCdiRate}%</Text>
               </View>
               <View style={styles.rateDivider} />
               <View style={styles.rateItem}>
@@ -169,7 +178,11 @@ export default function PerfilScreen() {
               <AppIcon name="chevron-right" size={16} color={Colors.neutral[300]} />
             </TouchableOpacity>
             <View style={styles.separator} />
-            <TouchableOpacity style={styles.menuItem} onPress={() => {}} activeOpacity={0.7}>
+            <TouchableOpacity
+              style={styles.menuItem}
+              onPress={() => router.push('/sobre-rende-mais')}
+              activeOpacity={0.7}
+            >
               <AppIcon name="info" size={18} color={Colors.neutral[500]} />
               <Text style={styles.menuLabel}>Sobre o Rende Mais</Text>
               <AppIcon name="chevron-right" size={16} color={Colors.neutral[300]} />
@@ -194,7 +207,7 @@ const styles = StyleSheet.create({
   header: {
     paddingHorizontal: 20,
     paddingBottom: 20,
-    backgroundColor: Colors.white,
+    backgroundColor: Colors.surface,
     borderBottomWidth: 1,
     borderBottomColor: Colors.neutral[100],
   },
@@ -203,7 +216,7 @@ const styles = StyleSheet.create({
   sectionLabel: {
     fontSize: 12,
     fontFamily: 'Inter_600SemiBold',
-    color: Colors.neutral[400],
+    color: Colors.neutral[500],
     textTransform: 'uppercase',
     letterSpacing: 0.8,
     marginBottom: 10,
@@ -212,11 +225,12 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 14,
-    backgroundColor: Colors.white,
+    backgroundColor: Colors.surface,
     borderRadius: 16,
     padding: 18,
     borderWidth: 1,
     borderColor: Colors.neutral[100],
+    ...shadows.card,
   },
   avatar: {
     width: 52,
@@ -228,13 +242,14 @@ const styles = StyleSheet.create({
   },
   heroText: { flex: 1 },
   heroTitle: { fontSize: 17, fontFamily: 'Inter_700Bold', color: Colors.neutral[950] },
-  heroSub: { fontSize: 13, fontFamily: 'Inter_400Regular', color: Colors.neutral[400], marginTop: 3 },
+  heroSub: { fontSize: 13, fontFamily: 'Inter_400Regular', color: Colors.neutral[500], marginTop: 3 },
   card: {
-    backgroundColor: Colors.white,
+    backgroundColor: Colors.surface,
     borderRadius: 16,
     overflow: 'hidden',
     borderWidth: 1,
     borderColor: Colors.neutral[100],
+    ...shadows.card,
   },
   row: {
     flexDirection: 'row',
@@ -260,12 +275,12 @@ const styles = StyleSheet.create({
   },
   rateItem: { flex: 1, alignItems: 'center', gap: 4 },
   rateDivider: { width: 1, backgroundColor: Colors.neutral[100] },
-  rateName: { fontSize: 12, fontFamily: 'Inter_500Medium', color: Colors.neutral[400] },
+  rateName: { fontSize: 12, fontFamily: 'Inter_500Medium', color: Colors.neutral[500] },
   rateNum: { fontSize: 22, fontFamily: 'Inter_700Bold', color: Colors.neutral[700] },
   ratesNote: {
-    fontSize: 11,
+    fontSize: 12,
     fontFamily: 'Inter_400Regular',
-    color: Colors.neutral[300],
+    color: Colors.neutral[400],
     textAlign: 'center',
     paddingBottom: 14,
   },
@@ -299,11 +314,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 8,
   },
-  footerVersion: { fontSize: 12, fontFamily: 'Inter_500Medium', color: Colors.neutral[300] },
+  footerVersion: { fontSize: 12, fontFamily: 'Inter_500Medium', color: Colors.neutral[400] },
   footerDisclaimer: {
-    fontSize: 11,
+    fontSize: 12,
     fontFamily: 'Inter_400Regular',
-    color: Colors.neutral[300],
+    color: Colors.neutral[400],
     textAlign: 'center',
     lineHeight: 17,
   },

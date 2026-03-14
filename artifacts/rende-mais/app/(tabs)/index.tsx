@@ -9,15 +9,18 @@ import {
   RefreshControl,
   TouchableOpacity,
 } from 'react-native';
-import { BlurView } from 'expo-blur';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AppIcon } from '@/components/ui/AppIcon';
 import { Colors } from '@/constants/colors';
-import { BANKS, CURRENT_CDI_RATE, Bank } from '@/constants/data';
+import { Bank } from '@/constants/data';
 import { OfferCard } from '@/components/OfferCard';
 import { SkeletonCard } from '@/components/ui/SkeletonCard';
 import { AffiliateSheet } from '@/components/AffiliateSheet';
+import { BannerAdSlot } from '@/components/ads/BannerAdSlot';
+import { NativeOfferAdCard } from '@/components/ads/NativeOfferAdCard';
 import { FilterSheet, FilterState, DEFAULT_FILTERS } from '@/components/FilterSheet';
+import { useAppData } from '@/providers/AppDataProvider';
+import { shouldInjectNativeAd, shouldShowHomeBanner } from '@/services/adMonetization';
 
 function getGreeting(): string {
   const hour = new Date().getHours();
@@ -60,6 +63,7 @@ function applyFilters(banks: Bank[], f: FilterState): Bank[] {
 }
 
 export default function HomeScreen() {
+  const { banks, currentCdiRate, adsConfig, refreshCatalog, isCatalogLoading, trackAffiliateClick } = useAppData();
   const insets = useSafeAreaInsets();
   const [refreshing, setRefreshing] = useState(false);
   const [affiliateBank, setAffiliateBank] = useState<Bank | null>(null);
@@ -69,7 +73,7 @@ export default function HomeScreen() {
 
   const scrollY = useRef(new Animated.Value(0)).current;
 
-  // Glassmorphism sticky header fade in on scroll
+  // Sticky header fade in on scroll
   const headerBlurOpacity = scrollY.interpolate({
     inputRange: [0, 80],
     outputRange: [0, 1],
@@ -82,26 +86,40 @@ export default function HomeScreen() {
   });
 
   const normalizedQuery = normalizeText(bankQuery);
-  const filteredBanks = applyFilters(BANKS, filters).filter((bank) => {
+  const filteredBanks = applyFilters(banks, filters).filter((bank) => {
     if (!normalizedQuery) return true;
     const haystack = normalizeText(`${bank.name} ${bank.shortName}`);
     return haystack.includes(normalizedQuery);
   });
   const activeCount = countActiveFilters(filters);
+  const showBannerSlot = shouldShowHomeBanner(adsConfig);
 
   const onRefresh = useCallback(() => {
     setRefreshing(true);
-    setTimeout(() => setRefreshing(false), 1500);
-  }, []);
+    void refreshCatalog()
+      .catch((error) => {
+        console.warn('Falha ao atualizar catalogo:', error);
+      })
+      .finally(() => setRefreshing(false));
+  }, [refreshCatalog]);
 
   const handleApplyFilters = (f: FilterState) => {
     setFilters(f);
     setFilterOpen(false);
   };
 
+  const handleInvestPress = (bank: Bank) => {
+    void trackAffiliateClick({
+      bank,
+      sourceScreen: 'home',
+      sourceComponent: 'offer_card_invest_button',
+    });
+    setAffiliateBank(bank);
+  };
+
   return (
     <View style={styles.container}>
-      {/* Animated glass sticky header */}
+      {/* Animated sticky header */}
       <Animated.View
         style={[
           styles.stickyHeader,
@@ -109,11 +127,10 @@ export default function HomeScreen() {
         ]}
         pointerEvents="none"
       >
-        <BlurView intensity={18} tint="light" style={StyleSheet.absoluteFillObject} />
         <Animated.View
           style={[
             StyleSheet.absoluteFillObject,
-            { backgroundColor: 'rgba(255,255,255,0.65)', opacity: headerBgOpacity },
+            { backgroundColor: 'rgba(9,9,11,0.65)', opacity: headerBgOpacity },
           ]}
         />
         <View style={styles.stickyDivider} />
@@ -132,15 +149,32 @@ export default function HomeScreen() {
             tintColor={Colors.brand[500]}
           />
         }
-        contentContainerStyle={{ paddingBottom: 110 }}
+        contentContainerStyle={{ paddingBottom: showBannerSlot ? 210 : 110 }}
       >
         {/* Hero header */}
         <View style={[styles.hero, { paddingTop: insets.top + 20 }]}>
           <View style={styles.heroTop}>
-            <View>
+            <View style={styles.heroTextWrap}>
               <Text style={styles.greeting}>{getGreeting()}</Text>
-              <Text style={styles.headline}>Onde rende mais{'\n'}hoje?</Text>
+              <Text style={styles.headline}>
+                Onde <Text style={styles.headlineBrand}>rende mais</Text>{'\n'}hoje?
+              </Text>
             </View>
+          </View>
+
+          <View style={styles.cdiRow}>
+            {/* CDI pill */}
+            <View style={styles.cdiBubbleWrap}>
+              <View style={styles.cdiBubble}>
+                <View style={styles.cdiBubbleOverlay} />
+                <AppIcon name="activity" size={13} color={Colors.brand[500]} />
+                <Text style={styles.cdiBubbleText}>
+                  CDI atual:{' '}
+                  <Text style={styles.cdiBubbleValue}>{currentCdiRate}% ao ano</Text>
+                </Text>
+              </View>
+            </View>
+
             {/* Filter button */}
             <TouchableOpacity
               style={[styles.filterBtn, activeCount > 0 && styles.filterBtnActive]}
@@ -162,18 +196,6 @@ export default function HomeScreen() {
                 </View>
               )}
             </TouchableOpacity>
-          </View>
-
-          {/* CDI pill - glass style */}
-          <View style={styles.cdiBubbleWrap}>
-            <BlurView intensity={60} tint="light" style={styles.cdiBubble}>
-              <View style={styles.cdiBubbleOverlay} />
-              <AppIcon name="activity" size={13} color={Colors.brand[500]} />
-              <Text style={styles.cdiBubbleText}>
-                CDI atual:{' '}
-                <Text style={styles.cdiBubbleValue}>{CURRENT_CDI_RATE}% ao ano</Text>
-              </Text>
-            </BlurView>
           </View>
         </View>
 
@@ -253,14 +275,23 @@ export default function HomeScreen() {
 
         {/* Cards */}
         <View style={styles.cards}>
-          {filteredBanks.length > 0 ? (
+          {isCatalogLoading && filteredBanks.length === 0 ? (
+            <>
+              <SkeletonCard />
+              <SkeletonCard />
+            </>
+          ) : filteredBanks.length > 0 ? (
             filteredBanks.map((bank, index) => (
-              <OfferCard
-                key={bank.id}
-                bank={bank}
-                index={index}
-                onInvestPress={(b) => setAffiliateBank(b)}
-              />
+              <React.Fragment key={bank.id}>
+                <OfferCard
+                  bank={bank}
+                  index={index}
+                  isBest={index === 0}
+                  currentCdiRate={currentCdiRate}
+                  onInvestPress={handleInvestPress}
+                />
+                {shouldInjectNativeAd(index + 1, adsConfig) ? <NativeOfferAdCard /> : null}
+              </React.Fragment>
             ))
           ) : (
             <View style={styles.emptyState}>
@@ -277,8 +308,10 @@ export default function HomeScreen() {
       <AffiliateSheet
         bank={affiliateBank}
         visible={!!affiliateBank}
+        sourceScreen="home"
         onClose={() => setAffiliateBank(null)}
       />
+      {showBannerSlot ? <BannerAdSlot /> : null}
       <FilterSheet
         visible={filterOpen}
         filters={filters}
@@ -292,7 +325,7 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: Colors.background },
 
-  // Sticky glass header
+  // Sticky header
   stickyHeader: {
     position: 'absolute',
     top: 0,
@@ -307,25 +340,27 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     height: 0.5,
-    backgroundColor: 'rgba(0,0,0,0.08)',
+    backgroundColor: 'rgba(255,255,255,0.04)',
   },
 
   // Hero
   hero: {
     paddingHorizontal: 20,
     paddingBottom: 24,
-    backgroundColor: Colors.white,
+    backgroundColor: Colors.surface,
   },
   heroTop: {
     flexDirection: 'row',
     alignItems: 'flex-start',
-    justifyContent: 'space-between',
     marginBottom: 18,
+  },
+  heroTextWrap: {
+    flexShrink: 1,
   },
   greeting: {
     fontSize: 13,
     fontFamily: 'Inter_500Medium',
-    color: Colors.neutral[400],
+    color: Colors.neutral[500],
     marginBottom: 5,
     letterSpacing: 0.2,
   },
@@ -336,6 +371,9 @@ const styles = StyleSheet.create({
     lineHeight: 38,
     letterSpacing: -0.5,
   },
+  headlineBrand: {
+    color: Colors.brand[600],
+  },
   filterBtn: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -343,16 +381,15 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     height: 42,
     borderRadius: 14,
-    backgroundColor: Colors.white,
+    backgroundColor: Colors.surface,
     borderWidth: 1,
     borderColor: Colors.neutral[200],
     justifyContent: 'center',
-    marginTop: 4,
     position: 'relative',
   },
   filterBtnActive: {
-    backgroundColor: Colors.neutral[950],
-    borderColor: Colors.neutral[950],
+    backgroundColor: Colors.brand[500],
+    borderColor: Colors.brand[500],
   },
   filterText: {
     fontSize: 13,
@@ -379,9 +416,16 @@ const styles = StyleSheet.create({
     color: Colors.white,
   },
 
+  // CDI + filter row
+  cdiRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    flexWrap: 'wrap',
+    gap: 12,
+  },
   // CDI bubble
   cdiBubbleWrap: {
-    alignSelf: 'flex-start',
     borderRadius: 20,
     overflow: 'hidden',
     borderWidth: 1,
@@ -396,12 +440,12 @@ const styles = StyleSheet.create({
   },
   cdiBubbleOverlay: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(240,253,244,0.75)',
+    backgroundColor: 'rgba(22,163,74,0.15)',
   },
   cdiBubbleText: {
     fontSize: 13,
     fontFamily: 'Inter_400Regular',
-    color: Colors.neutral[600],
+    color: Colors.neutral[500],
   },
   cdiBubbleValue: {
     fontFamily: 'Inter_700Bold',
@@ -412,7 +456,7 @@ const styles = StyleSheet.create({
   searchWrap: {
     marginTop: 12,
     marginHorizontal: 20,
-    backgroundColor: Colors.white,
+    backgroundColor: Colors.surface,
     borderRadius: 14,
     borderWidth: 1,
     borderColor: Colors.neutral[200],
@@ -434,12 +478,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     borderRadius: 12,
-    backgroundColor: Colors.neutral[100],
+    backgroundColor: Colors.surface,
   },
 
   // Active filters
   activeFiltersRow: {
-    backgroundColor: Colors.white,
+    backgroundColor: Colors.surface,
     borderBottomWidth: 1,
     borderBottomColor: Colors.neutral[100],
   },
@@ -484,24 +528,24 @@ const styles = StyleSheet.create({
     paddingBottom: 6,
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    justifyContent: 'space-between',
   },
   listCount: {
     fontSize: 12,
     fontFamily: 'Inter_600SemiBold',
-    color: Colors.neutral[400],
+    color: Colors.neutral[500],
     textTransform: 'uppercase',
     letterSpacing: 0.5,
   },
   listSub: {
     fontSize: 12,
     fontFamily: 'Inter_400Regular',
-    color: Colors.neutral[300],
+    color: Colors.neutral[400],
   },
 
   // Cards
   cards: {
-    paddingHorizontal: 16,
+    paddingHorizontal: 20,
     paddingTop: 8,
   },
   emptyState: {
@@ -512,10 +556,10 @@ const styles = StyleSheet.create({
   emptyTitle: {
     fontSize: 15,
     fontFamily: 'Inter_400Regular',
-    color: Colors.neutral[400],
+    color: Colors.neutral[500],
   },
   emptyBtn: {
-    backgroundColor: Colors.neutral[950],
+    backgroundColor: Colors.brand[500],
     borderRadius: 12,
     paddingHorizontal: 20,
     paddingVertical: 10,

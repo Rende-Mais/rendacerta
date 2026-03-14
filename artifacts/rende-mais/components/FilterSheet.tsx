@@ -12,12 +12,12 @@ import {
 } from 'react-native';
 import { BlurView } from 'expo-blur';
 import * as Haptics from 'expo-haptics';
-import { Colors } from '@/constants/colors';
+import { Colors, shadows } from '@/constants/colors';
 import { AppIcon } from '@/components/ui/AppIcon';
 import { LiquidityType, InvestmentType } from '@/constants/data';
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
-const SHEET_HEIGHT = SCREEN_HEIGHT * 0.82;
+const SHEET_HEIGHT = SCREEN_HEIGHT * 0.72;
 
 export interface FilterState {
   investmentType: InvestmentType | 'todos';
@@ -121,7 +121,7 @@ export function FilterSheet({ visible, filters, onApply, onClose }: FilterSheetP
       {/* Sheet */}
       <Animated.View style={[styles.sheet, { transform: [{ translateY }] }]}>
         {/* Glass header */}
-        <BlurView intensity={70} tint="light" style={styles.sheetHeader}>
+        <BlurView intensity={70} tint="dark" style={styles.sheetHeader}>
           <View style={styles.glassOverlay} />
           <View style={styles.sheetHandle} />
           <View style={styles.sheetTitleRow}>
@@ -140,7 +140,7 @@ export function FilterSheet({ visible, filters, onApply, onClose }: FilterSheetP
           </View>
         </BlurView>
 
-        <ScrollView style={styles.scrollContent} showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 120 }}>
+        <ScrollView style={styles.scrollContent} showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 140 }}>
 
           {/* Investment type */}
           <View style={styles.group}>
@@ -261,7 +261,7 @@ export function FilterSheet({ visible, filters, onApply, onClose }: FilterSheetP
         </ScrollView>
 
         {/* Glass CTA */}
-        <BlurView intensity={80} tint="light" style={styles.ctaBar}>
+        <BlurView intensity={80} tint="dark" style={styles.ctaBar}>
           <View style={styles.ctaGlassOverlay} />
           <TouchableOpacity
             style={styles.applyBtn}
@@ -287,7 +287,7 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     height: SHEET_HEIGHT,
-    backgroundColor: '#F5F5F7',
+    backgroundColor: Colors.background,
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
     overflow: 'hidden',
@@ -301,13 +301,13 @@ const styles = StyleSheet.create({
   },
   glassOverlay: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(255,255,255,0.55)',
+    backgroundColor: 'rgba(24,24,27,0.75)',
   },
   sheetHandle: {
     width: 36,
     height: 4,
     borderRadius: 2,
-    backgroundColor: 'rgba(0,0,0,0.15)',
+    backgroundColor: 'rgba(255,255,255,0.1)',
     alignSelf: 'center',
     marginBottom: 14,
   },
@@ -360,7 +360,7 @@ const styles = StyleSheet.create({
   option: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: Colors.white,
+    backgroundColor: Colors.surface,
     borderRadius: 14,
     padding: 14,
     marginBottom: 8,
@@ -397,7 +397,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     paddingVertical: 10,
     borderRadius: 12,
-    backgroundColor: Colors.white,
+    backgroundColor: Colors.surface,
     borderWidth: 1.5,
     borderColor: 'transparent',
     alignItems: 'center',
@@ -405,13 +405,13 @@ const styles = StyleSheet.create({
   chipSelected: { borderColor: Colors.brand[400], backgroundColor: Colors.brand[50] },
   chipLabel: { fontSize: 13, fontFamily: 'Inter_600SemiBold', color: Colors.neutral[600] },
   chipLabelSelected: { color: Colors.brand[600] },
-  chipSub: { fontSize: 10, fontFamily: 'Inter_400Regular', color: Colors.neutral[400], marginTop: 2 },
+  chipSub: { fontSize: 12, fontFamily: 'Inter_400Regular', color: Colors.neutral[400], marginTop: 2 },
   chipSubSelected: { color: Colors.brand[400] },
   pill: {
     paddingHorizontal: 14,
     paddingVertical: 9,
     borderRadius: 999,
-    backgroundColor: Colors.white,
+    backgroundColor: Colors.surface,
     borderWidth: 1.5,
     borderColor: 'transparent',
   },
@@ -419,9 +419,10 @@ const styles = StyleSheet.create({
   pillText: { fontSize: 13, fontFamily: 'Inter_500Medium', color: Colors.neutral[600] },
   pillTextSelected: { color: Colors.brand[600], fontFamily: 'Inter_700Bold' },
   toggleCard: {
-    backgroundColor: Colors.white,
+    backgroundColor: Colors.surface,
     borderRadius: 16,
     overflow: 'hidden',
+    ...shadows.card,
   },
   toggleRow: {
     flexDirection: 'row',
@@ -453,10 +454,10 @@ const styles = StyleSheet.create({
   },
   ctaGlassOverlay: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(245,245,247,0.80)',
+    backgroundColor: 'rgba(9,9,11,0.85)',
   },
   applyBtn: {
-    backgroundColor: Colors.neutral[950],
+    backgroundColor: Colors.brand[500],
     borderRadius: 16,
     height: 54,
     alignItems: 'center',

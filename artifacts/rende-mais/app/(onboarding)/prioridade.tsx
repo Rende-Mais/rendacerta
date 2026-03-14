@@ -4,6 +4,7 @@ import {
   Text,
   StyleSheet,
   TouchableOpacity,
+  ScrollView,
 } from 'react-native';
 import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -66,7 +67,14 @@ export default function Prioridade() {
   };
 
   return (
-    <View style={[styles.container, { paddingTop: insets.top + 20, paddingBottom: insets.bottom + 24 }]}>
+    <ScrollView
+      style={styles.container}
+      contentContainerStyle={[
+        styles.containerContent,
+        { paddingTop: insets.top + 20, paddingBottom: insets.bottom + 24 },
+      ]}
+      showsVerticalScrollIndicator={false}
+    >
       <ProgressDots current={3} />
 
       <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
@@ -115,15 +123,18 @@ export default function Prioridade() {
         <Text style={styles.buttonText}>Ver minha indicação</Text>
         <AppIcon name="arrow-right" size={20} color={Colors.white} />
       </TouchableOpacity>
-    </View>
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.white,
+    backgroundColor: Colors.background,
+  },
+  containerContent: {
     paddingHorizontal: 24,
+    flexGrow: 1,
   },
   backButton: {
     width: 40,
@@ -168,7 +179,7 @@ const styles = StyleSheet.create({
     padding: 20,
     alignItems: 'center',
     gap: 10,
-    backgroundColor: Colors.white,
+    backgroundColor: Colors.surface,
     position: 'relative',
   },
   optionSelected: {
@@ -191,7 +202,7 @@ const styles = StyleSheet.create({
   optionSub: {
     fontSize: 13,
     fontFamily: 'Inter_400Regular',
-    color: Colors.neutral[400],
+    color: Colors.neutral[500],
     textAlign: 'center',
   },
   checkmark: {

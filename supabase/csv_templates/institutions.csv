@@ -1,0 +1,7 @@
+id,slug,name,short_name,brand_color,logo_url,affiliate_base_url,fgc_covered,risk_score,risk_level,description,is_active
+11111111-1111-1111-1111-111111111111,xp,XP Investimentos,XP,#000000,,https://www.xp.com.br,true,85,baixo,Corretora consolidada com ampla oferta de produtos.,true
+22222222-2222-2222-2222-222222222222,btg,BTG Pactual,BTG,#1A1A6E,,https://www.btgpactual.com,true,90,baixo,Banco de investimentos com forte presenca no mercado.,true
+33333333-3333-3333-3333-333333333333,inter,Banco Inter,Inter,#FF6900,,https://www.bancointer.com.br,true,78,baixo,Banco digital com opcoes acessiveis.,true
+44444444-4444-4444-4444-444444444444,c6,C6 Bank,C6,#242424,,https://www.c6bank.com.br,true,75,baixo,Banco digital com conta e investimentos.,true
+55555555-5555-5555-5555-555555555555,rico,Rico Investimentos,Rico,#00C2A8,,https://www.rico.com.vc,true,80,baixo,Corretora focada em renda fixa e investimentos.,true
+66666666-6666-6666-6666-666666666666,nubank,Nubank,Nu,#820AD1,,https://nubank.com.br,true,82,baixo,Banco digital com onboarding simples.,true

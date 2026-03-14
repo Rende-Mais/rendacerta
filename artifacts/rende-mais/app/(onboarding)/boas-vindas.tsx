@@ -9,7 +9,7 @@ import {
 import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AppIcon } from '@/components/ui/AppIcon';
-import { Colors } from '@/constants/colors';
+import { Colors, shadows } from '@/constants/colors';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -72,7 +72,7 @@ export default function BoasVindas() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.white,
+    backgroundColor: Colors.background,
     paddingHorizontal: 24,
   },
   dots: {
@@ -126,11 +126,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     paddingVertical: 8,
     borderRadius: 999,
-    shadowColor: Colors.brand[500],
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 6,
+    ...shadows.card,
   },
   floatCardText: {
     color: Colors.white,

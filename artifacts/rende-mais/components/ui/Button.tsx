@@ -59,7 +59,7 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.brand[500],
   },
   outline: {
-    backgroundColor: Colors.white,
+    backgroundColor: Colors.surface,
     borderWidth: 1.5,
     borderColor: Colors.brand[500],
   },

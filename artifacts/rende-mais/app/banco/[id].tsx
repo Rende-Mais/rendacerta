@@ -12,24 +12,34 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AppIcon } from '@/components/ui/AppIcon';
 import * as Haptics from 'expo-haptics';
 import { Colors, shadows } from '@/constants/colors';
-import { BANKS, calculateReturn, calculateSavingsReturn, formatCurrency, INVESTMENT_LABELS, LIQUIDITY_LABELS, getRiskColor, getRiskLabel } from '@/constants/data';
+import {
+  BANKS,
+  calculateReturnWithBaseCdi,
+  calculateSavingsReturn,
+  formatCurrency,
+  INVESTMENT_LABELS,
+  LIQUIDITY_LABELS,
+} from '@/constants/data';
 import { BankLogo } from '@/components/BankLogo';
 import { LiquidityPill } from '@/components/LiquidityPill';
 import { Badge } from '@/components/ui/Badge';
 import { RiskMeter } from '@/components/RiskMeter';
 import { AffiliateSheet } from '@/components/AffiliateSheet';
+import { useAppData } from '@/providers/AppDataProvider';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
 const INVESTMENT_AMOUNTS = [1000, 5000, 10000, 50000];
 
 export default function BancoDetail() {
+  const { banks, currentCdiRate, trackAffiliateClick } = useAppData();
+  const sourceBanks = banks.length > 0 ? banks : BANKS;
   const { id } = useLocalSearchParams<{ id: string }>();
   const insets = useSafeAreaInsets();
   const [affiliateVisible, setAffiliateVisible] = useState(false);
   const [selectedAmount, setSelectedAmount] = useState(5000);
 
-  const bank = BANKS.find((b) => b.id === id);
+  const bank = sourceBanks.find((b) => b.id === id);
 
   if (!bank) {
     return (
@@ -42,7 +52,13 @@ export default function BancoDetail() {
     );
   }
 
-  const { net, monthly } = calculateReturn(selectedAmount, bank.cdiRate, 12, bank.hasTax);
+  const { net, monthly } = calculateReturnWithBaseCdi(
+    selectedAmount,
+    bank.cdiRate,
+    12,
+    bank.hasTax,
+    currentCdiRate,
+  );
   const savingsReturn = calculateSavingsReturn(selectedAmount, 12);
   const gainVsSavings = net - savingsReturn;
 
@@ -215,7 +231,15 @@ export default function BancoDetail() {
       <View style={[styles.footer, { paddingBottom: insets.bottom + 16 }]}>
         <TouchableOpacity
           style={styles.investButton}
-          onPress={() => { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium); setAffiliateVisible(true); }}
+          onPress={() => {
+            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+            void trackAffiliateClick({
+              bank,
+              sourceScreen: 'bank_detail',
+              sourceComponent: 'bank_detail_invest_button',
+            });
+            setAffiliateVisible(true);
+          }}
           activeOpacity={0.85}
         >
           <Text style={styles.investButtonText}>Abrir conta na {bank.shortName}</Text>
@@ -226,6 +250,7 @@ export default function BancoDetail() {
       <AffiliateSheet
         bank={bank}
         visible={affiliateVisible}
+        sourceScreen="bank_detail"
         onClose={() => setAffiliateVisible(false)}
       />
     </View>
@@ -241,9 +266,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 16,
+    paddingHorizontal: 20,
     paddingBottom: 12,
-    backgroundColor: Colors.white,
+    backgroundColor: Colors.surface,
     borderBottomWidth: 1,
     borderBottomColor: Colors.neutral[100],
   },
@@ -259,7 +284,7 @@ const styles = StyleSheet.create({
     color: Colors.neutral[950],
   },
   heroCard: {
-    backgroundColor: Colors.white,
+    backgroundColor: Colors.surface,
     padding: 20,
     gap: 14,
   },
@@ -305,7 +330,7 @@ const styles = StyleSheet.create({
     color: Colors.neutral[500],
   },
   section: {
-    paddingHorizontal: 16,
+    paddingHorizontal: 20,
     marginTop: 20,
   },
   sectionTitle: {
@@ -315,11 +340,11 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   simulatorCard: {
-    backgroundColor: Colors.white,
+    backgroundColor: Colors.surface,
     borderRadius: 16,
     padding: 16,
     gap: 14,
-    ...shadows.level1,
+    ...shadows.card,
   },
   simLabel: {
     fontSize: 13,
@@ -373,7 +398,7 @@ const styles = StyleSheet.create({
     color: Colors.brand[700],
   },
   projSub: {
-    fontSize: 11,
+    fontSize: 12,
     fontFamily: 'Inter_400Regular',
     color: Colors.brand[500],
   },
@@ -401,10 +426,10 @@ const styles = StyleSheet.create({
     lineHeight: 18,
   },
   chartCard: {
-    backgroundColor: Colors.white,
+    backgroundColor: Colors.surface,
     borderRadius: 16,
     padding: 16,
-    ...shadows.level1,
+    ...shadows.card,
   },
   chartContainer: {
     flexDirection: 'row',
@@ -418,9 +443,9 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   barValue: {
-    fontSize: 10,
+    fontSize: 12,
     fontFamily: 'Inter_500Medium',
-    color: Colors.neutral[400],
+    color: Colors.neutral[500],
   },
   bar: {
     width: 28,
@@ -428,23 +453,23 @@ const styles = StyleSheet.create({
     minHeight: 16,
   },
   barMonth: {
-    fontSize: 10,
+    fontSize: 12,
     fontFamily: 'Inter_400Regular',
-    color: Colors.neutral[400],
+    color: Colors.neutral[500],
   },
   chartCaption: {
-    fontSize: 11,
+    fontSize: 12,
     fontFamily: 'Inter_400Regular',
-    color: Colors.neutral[300],
+    color: Colors.neutral[400],
     textAlign: 'center',
     marginTop: 12,
   },
   detailsCard: {
-    backgroundColor: Colors.white,
+    backgroundColor: Colors.surface,
     borderRadius: 16,
     padding: 16,
     gap: 14,
-    ...shadows.level1,
+    ...shadows.card,
   },
   detailRow: {
     flexDirection: 'row',
@@ -459,11 +484,11 @@ const styles = StyleSheet.create({
     lineHeight: 20,
   },
   riskCard: {
-    backgroundColor: Colors.white,
+    backgroundColor: Colors.surface,
     borderRadius: 16,
     padding: 16,
     gap: 14,
-    ...shadows.level1,
+    ...shadows.card,
   },
   riskDesc: {
     fontSize: 14,
@@ -474,13 +499,13 @@ const styles = StyleSheet.create({
   redirectNote: {
     fontSize: 12,
     fontFamily: 'Inter_400Regular',
-    color: Colors.neutral[400],
+    color: Colors.neutral[500],
     textAlign: 'center',
   },
   footer: {
-    paddingHorizontal: 16,
+    paddingHorizontal: 20,
     paddingTop: 12,
-    backgroundColor: Colors.white,
+    backgroundColor: Colors.surface,
     borderTopWidth: 1,
     borderTopColor: Colors.neutral[100],
   },

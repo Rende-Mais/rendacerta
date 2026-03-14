@@ -30,7 +30,7 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.brand[50],
   },
   text: {
-    fontSize: 11,
+    fontSize: 12,
     fontFamily: 'Inter_500Medium',
     color: Colors.neutral[500],
   },

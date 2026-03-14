@@ -19,12 +19,13 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 interface AffiliateSheetProps {
   bank: Bank | null;
   visible: boolean;
+  sourceScreen: string;
   onClose: () => void;
 }
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 
-export function AffiliateSheet({ bank, visible, onClose }: AffiliateSheetProps) {
+export function AffiliateSheet({ bank, visible, sourceScreen: _sourceScreen, onClose }: AffiliateSheetProps) {
   const translateY = useRef(new Animated.Value(SCREEN_HEIGHT)).current;
   const insets = useSafeAreaInsets();
 
@@ -101,7 +102,7 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
   },
   sheet: {
-    backgroundColor: Colors.white,
+    backgroundColor: Colors.surface,
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
     padding: 20,

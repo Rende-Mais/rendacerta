@@ -54,14 +54,14 @@ function NativeTabLayout() {
     <NativeTabs>
       <NativeTabs.Trigger name="index">
         <Icon sf={{ default: 'chart.bar', selected: 'chart.bar.fill' }} />
-        <Label>Início</Label>
+        <Label>InÃ­cio</Label>
       </NativeTabs.Trigger>
       <NativeTabs.Trigger name="comparar">
         <Icon sf={{ default: 'arrow.left.arrow.right', selected: 'arrow.left.arrow.right' }} />
         <Label>Comparar</Label>
       </NativeTabs.Trigger>
       <NativeTabs.Trigger name="calcular">
-        <Icon sf={{ default: 'calculator', selected: 'calculator.fill' }} />
+        <Icon sf={{ default: 'percent', selected: 'percent' }} />
         <Label>Calcular</Label>
       </NativeTabs.Trigger>
       <NativeTabs.Trigger name="perfil">
@@ -81,10 +81,15 @@ function ClassicTabLayout() {
       screenOptions={{
         headerShown: false,
         tabBarActiveTintColor: Colors.brand[500],
-        tabBarInactiveTintColor: Colors.neutral[400],
+        tabBarInactiveTintColor: Colors.neutral[500],
+        tabBarLabelStyle: {
+          fontSize: 12,
+          fontFamily: 'Inter_600SemiBold',
+          letterSpacing: 0.2,
+        },
         tabBarStyle: {
           position: 'absolute',
-          backgroundColor: isIOS ? 'transparent' : Colors.white,
+          backgroundColor: isIOS ? 'transparent' : Colors.surface,
           borderTopWidth: 1,
           borderTopColor: Colors.neutral[100],
           elevation: 0,
@@ -93,16 +98,16 @@ function ClassicTabLayout() {
         },
         tabBarBackground: () =>
           isIOS ? (
-            <BlurView intensity={100} tint="light" style={StyleSheet.absoluteFill} />
+            <BlurView intensity={100} tint="dark" style={StyleSheet.absoluteFill} />
           ) : isWeb ? (
-            <View style={[StyleSheet.absoluteFill, { backgroundColor: Colors.white }]} />
+            <View style={[StyleSheet.absoluteFill, { backgroundColor: Colors.surface }]} />
           ) : null,
       }}
     >
       <Tabs.Screen
         name="index"
         options={{
-          title: 'Início',
+          title: 'InÃ­cio',
           tabBarIcon: ({ color }) =>
             isIOS && SymbolView ? (
               <SymbolView name="chart.bar" tintColor={color} size={24} />
@@ -129,7 +134,7 @@ function ClassicTabLayout() {
           title: 'Calcular',
           tabBarIcon: ({ color }) =>
             isIOS && SymbolView ? (
-              <SymbolView name="calculator" tintColor={color} size={24} />
+              <SymbolView name="percent" tintColor={color} size={24} />
             ) : (
               <AppIcon name="percent" size={22} color={color} />
             ),

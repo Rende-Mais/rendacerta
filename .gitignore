@@ -36,6 +36,10 @@ npm-debug.log
 yarn-error.log
 testem.log
 /typings
+.env
+.env.*
+!.env.example
+artifacts/rende-mais/.env
 
 # System Files
 .DS_Store

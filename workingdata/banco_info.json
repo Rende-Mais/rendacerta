@@ -1,0 +1,261 @@
+{
+    "99pay": {
+        "fgc": false,
+        "products": [
+            "tesouro_selic_conta_remunerada"
+        ],
+        "liquidity": "imediata",
+        "min_investment": 0,
+        "ir": "sim",
+        "cdi": "110%"
+    },
+    "agibank": {
+        "fgc": true,
+        "products": [
+            "CDB",
+            "LCI",
+            "LCA"
+        ],
+        "liquidity": "vencimento/alguns_resgate",
+        "min_investment": 1000,
+        "ir": "CDB_sim_LCI_LCA_nao",
+        "cdi": "113%"
+    },
+    "brb": {
+        "fgc": true,
+        "products": [
+            "CDB",
+            "LCI"
+        ],
+        "liquidity": "diaria",
+        "min_investment": 100,
+        "ir": "CDB_sim_LCI_nao",
+        "cdi": "98-115%"
+    },
+    "bancodobrasil": {
+        "fgc": "CDB_sim_fundo_nao",
+        "products": [
+            "CDB",
+            "fundo_curto_prazo"
+        ],
+        "liquidity": "diaria",
+        "min_investment": 500,
+        "ir": "sim",
+        "cdi": "99%"
+    },
+    "bancodonordeste": {
+        "fgc": true,
+        "products": [
+            "CDB",
+            "LCA"
+        ],
+        "liquidity": "vencimento",
+        "min_investment": null,
+        "ir": "CDB_sim_LCA_nao",
+        "cdi": "~100%"
+    },
+    "mercantil": {
+        "fgc": true,
+        "products": [
+            "CDB"
+        ],
+        "liquidity": "vencimento",
+        "min_investment": 5000,
+        "ir": "sim",
+        "cdi": "100-102%"
+    },
+    "bmg": {
+        "fgc": true,
+        "products": [
+            "CDB"
+        ],
+        "liquidity": "diaria",
+        "min_investment": 50,
+        "ir": "sim",
+        "cdi": "107-114%"
+    },
+    "pan": {
+        "fgc": true,
+        "products": [
+            "CDB",
+            "conta_remunerada"
+        ],
+        "liquidity": "diaria",
+        "min_investment": 5,
+        "ir": "sim",
+        "cdi": "100-130%"
+    },
+    "banrisul": {
+        "fgc": true,
+        "products": [
+            "CDB",
+            "LCI",
+            "LCA"
+        ],
+        "liquidity": "variavel",
+        "min_investment": null,
+        "ir": "CDB_sim_LCI_LCA_nao",
+        "cdi": "~100%"
+    },
+    "bradesco": {
+        "fgc": true,
+        "products": [
+            "CDB"
+        ],
+        "liquidity": "diaria",
+        "min_investment": 100,
+        "ir": "sim",
+        "cdi": "100%"
+    },
+    "c6": {
+        "fgc": true,
+        "products": [
+            "CDB"
+        ],
+        "liquidity": "diaria",
+        "min_investment": 20,
+        "ir": "sim",
+        "cdi": "102%"
+    },
+    "caixa": {
+        "fgc": true,
+        "products": [
+            "CDB",
+            "LCI"
+        ],
+        "liquidity": "diaria_ou_carencia_LCI",
+        "min_investment": {
+            "CDB": 200,
+            "LCI": 1000
+        },
+        "ir": "CDB_sim_LCI_nao",
+        "cdi": "95%_CDB_83%_LCI"
+    },
+    "inter": {
+        "fgc": true,
+        "products": [
+            "CDB",
+            "LCA"
+        ],
+        "liquidity": "diaria",
+        "min_investment": 1,
+        "ir": "LCA_nao",
+        "cdi": "100-102%"
+    },
+    "itau": {
+        "fgc": true,
+        "products": [
+            "LCA",
+            "CDB"
+        ],
+        "liquidity": "diaria_apos_6m",
+        "min_investment": 1000,
+        "ir": "LCA_nao",
+        "cdi": "90-100%"
+    },
+    "mercadopago": {
+        "fgc": false,
+        "products": [
+            "tesouro_selic_cofrinho"
+        ],
+        "liquidity": "imediata",
+        "min_investment": 1,
+        "ir": "sim",
+        "cdi": "100-120%"
+    },
+    "next": {
+        "fgc": true,
+        "products": [
+            "CDB"
+        ],
+        "liquidity": "diaria",
+        "min_investment": 100,
+        "ir": "sim",
+        "cdi": "100%"
+    },
+    "nubank": {
+        "fgc": true,
+        "products": [
+            "RDB",
+            "CDB"
+        ],
+        "liquidity": "diaria",
+        "min_investment": 1,
+        "ir": "sim",
+        "cdi": "100-120%"
+    },
+    "pagbank": {
+        "fgc": true,
+        "products": [
+            "CDB",
+            "cofrinho"
+        ],
+        "liquidity": "diaria_ou_vencimento",
+        "min_investment": 1,
+        "ir": "sim",
+        "cdi": "100-130%"
+    },
+    "picpay": {
+        "fgc": true,
+        "products": [
+            "CDB_cofrinho"
+        ],
+        "liquidity": "diaria",
+        "min_investment": 1,
+        "ir": "sim",
+        "cdi": "102-121%"
+    },
+    "porto": {
+        "fgc": "provavel",
+        "products": [
+            "CDB_conta_remunerada"
+        ],
+        "liquidity": "diaria",
+        "min_investment": null,
+        "ir": "sim",
+        "cdi": null
+    },
+    "recargapay": {
+        "fgc": "conta_nao_cdb_sim",
+        "products": [
+            "conta_remunerada",
+            "CDB"
+        ],
+        "liquidity": "imediata_ou_30d",
+        "min_investment": 50,
+        "ir": "sim",
+        "cdi": "100-110%_conta_103%_CDB"
+    },
+    "rico": {
+        "fgc": true,
+        "products": [
+            "CDB_varios_emissores"
+        ],
+        "liquidity": "vencimento_60d",
+        "min_investment": "100",
+        "ir": "sim",
+        "cdi": "230%"
+    },
+    "santander": {
+        "fgc": true,
+        "products": [
+            "CDB",
+            "LCI",
+            "LCA"
+        ],
+        "liquidity": "diaria",
+        "min_investment": 1,
+        "ir": "CDB_sim_LCI_LCA_nao",
+        "cdi": "100%"
+    },
+    "xp": {
+        "fgc": true,
+        "products": [
+            "CDB_varios_emissores"
+        ],
+        "liquidity": "vencimento",
+        "min_investment": "variavel",
+        "ir": "sim",
+        "cdi": "~150%"
+    }
+}

@@ -6,8 +6,8 @@
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "rende-mais",
-    "userInterfaceStyle": "light",
-    "newArchEnabled": true,
+    "userInterfaceStyle": "dark",
+    "newArchEnabled": false,
     "splash": {
       "image": "./assets/images/splash-icon.png",
       "resizeMode": "contain",
@@ -28,11 +28,12 @@
         }
       ],
       "expo-font",
-      "expo-web-browser"
+      "expo-web-browser",
+      "react-native-google-mobile-ads"
     ],
     "experiments": {
       "typedRoutes": true,
-      "reactCompiler": true
+      "reactCompiler": false
     }
   }
 }

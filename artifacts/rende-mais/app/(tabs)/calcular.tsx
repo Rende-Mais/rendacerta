@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import {
   View,
   Text,
@@ -12,13 +12,13 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AppIcon } from '@/components/ui/AppIcon';
 import * as Haptics from 'expo-haptics';
-import { Colors } from '@/constants/colors';
+import { Colors, shadows } from '@/constants/colors';
 import {
   BANKS,
-  CURRENT_CDI_RATE,
   formatCurrency,
 } from '@/constants/data';
 import { BankLogo } from '@/components/BankLogo';
+import { useAppData } from '@/providers/AppDataProvider';
 
 function formatInput(raw: string): string {
   const nums = raw.replace(/\D/g, '');
@@ -45,9 +45,10 @@ function calculateReturnWithMonthly(
   monthlyContribution: number,
   cdiPercent: number,
   months: number,
-  hasTax: boolean
+  hasTax: boolean,
+  baseCdiRate: number
 ): { gross: number; net: number; monthly: number; total: number; invested: number } {
-  const annualRate = (CURRENT_CDI_RATE * cdiPercent) / 100 / 100;
+  const annualRate = (baseCdiRate * cdiPercent) / 100 / 100;
   const monthlyRate = Math.pow(1 + annualRate, 1 / 12) - 1;
   const factor = Math.pow(1 + monthlyRate, months);
 
@@ -85,9 +86,7 @@ function calculateSavingsReturnWithMonthly(
   const factor = Math.pow(1 + monthlyRate, months);
   const totalFromPrincipal = principal * factor;
   const totalFromMonthly = monthlyContribution > 0
-    ? monthlyRate === 0
-      ? monthlyContribution * months
-      : monthlyContribution * ((factor - 1) / monthlyRate)
+    ? monthlyContribution * ((factor - 1) / monthlyRate)
     : 0;
 
   const invested = principal + monthlyContribution * months;
@@ -103,6 +102,8 @@ const PERIODS = [
 ];
 
 export default function CalcularScreen() {
+  const { banks, currentCdiRate } = useAppData();
+  const sourceBanks = banks.length > 0 ? banks : BANKS;
   const insets = useSafeAreaInsets();
   const [inputValue, setInputValue] = useState('');
   const [monthlyContribution, setMonthlyContribution] = useState('');
@@ -111,6 +112,16 @@ export default function CalcularScreen() {
   const [customMonths, setCustomMonths] = useState('');
   const [selectedBankId, setSelectedBankId] = useState(BANKS[0].id);
   const [bankQuery, setBankQuery] = useState('');
+
+  useEffect(() => {
+    if (sourceBanks.length === 0) {
+      return;
+    }
+
+    setSelectedBankId((previousId) =>
+      sourceBanks.some((bank) => bank.id === previousId) ? previousId : sourceBanks[0].id,
+    );
+  }, [sourceBanks]);
 
   const parsedCustomMonths = parseInt(customMonths, 10);
   const effectiveMonths =
@@ -122,12 +133,12 @@ export default function CalcularScreen() {
   const monthlyAmount = parseValue(monthlyContribution);
   const canSimulate = (amount > 0 || monthlyAmount > 0) && effectiveMonths > 0;
   const normalizedQuery = normalizeText(bankQuery);
-  const filteredBanks = BANKS.filter((bank) => {
+  const filteredBanks = sourceBanks.filter((bank) => {
     if (!normalizedQuery) return true;
     const haystack = normalizeText(`${bank.name} ${bank.shortName}`);
     return haystack.includes(normalizedQuery);
   });
-  const selectedBank = BANKS.find((b) => b.id === selectedBankId) ?? BANKS[0];
+  const selectedBank = sourceBanks.find((b) => b.id === selectedBankId) ?? sourceBanks[0];
 
   const result = useMemo(() => {
     if (!canSimulate) return null;
@@ -136,9 +147,10 @@ export default function CalcularScreen() {
       monthlyAmount,
       selectedBank.cdiRate,
       effectiveMonths,
-      selectedBank.hasTax
+      selectedBank.hasTax,
+      currentCdiRate
     );
-  }, [amount, monthlyAmount, selectedBank, effectiveMonths, canSimulate]);
+  }, [amount, monthlyAmount, selectedBank, effectiveMonths, canSimulate, currentCdiRate]);
 
   const savingsNet = useMemo(() => {
     if (!canSimulate) return 0;
@@ -366,12 +378,12 @@ const styles = StyleSheet.create({
   header: {
     paddingHorizontal: 20,
     paddingBottom: 24,
-    backgroundColor: Colors.white,
+    backgroundColor: Colors.surface,
     borderBottomWidth: 1,
     borderBottomColor: Colors.neutral[100],
   },
   title: { fontSize: 28, fontFamily: 'Inter_700Bold', color: Colors.neutral[950] },
-  subtitle: { fontSize: 14, fontFamily: 'Inter_400Regular', color: Colors.neutral[400], marginTop: 4 },
+  subtitle: { fontSize: 14, fontFamily: 'Inter_400Regular', color: Colors.neutral[500], marginTop: 4 },
   section: { paddingHorizontal: 20, marginTop: 28 },
   question: {
     fontSize: 17,
@@ -380,7 +392,7 @@ const styles = StyleSheet.create({
     marginBottom: 14,
   },
   inputWrapper: {
-    backgroundColor: Colors.white,
+    backgroundColor: Colors.surface,
     borderRadius: 16,
     borderWidth: 2,
     borderColor: Colors.brand[400],
@@ -393,7 +405,7 @@ const styles = StyleSheet.create({
     paddingVertical: 18,
   },
   inputWrapperSoft: {
-    backgroundColor: Colors.white,
+    backgroundColor: Colors.surface,
     borderRadius: 14,
     borderWidth: 1,
     borderColor: Colors.neutral[200],
@@ -410,13 +422,13 @@ const styles = StyleSheet.create({
     paddingHorizontal: 18,
     paddingVertical: 10,
     borderRadius: 999,
-    backgroundColor: Colors.white,
+    backgroundColor: Colors.surface,
     borderWidth: 1,
     borderColor: Colors.neutral[200],
   },
-  pillActive: { backgroundColor: Colors.neutral[950], borderColor: Colors.neutral[950] },
+  pillActive: { backgroundColor: Colors.brand[50], borderColor: Colors.brand[500] },
   pillText: { fontSize: 14, fontFamily: 'Inter_500Medium', color: Colors.neutral[600] },
-  pillTextActive: { color: Colors.white },
+  pillTextActive: { color: Colors.brand[600] },
   customMonthRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -425,7 +437,7 @@ const styles = StyleSheet.create({
   },
   customMonthInput: {
     flex: 1,
-    backgroundColor: Colors.white,
+    backgroundColor: Colors.surface,
     borderRadius: 12,
     borderWidth: 1,
     borderColor: Colors.neutral[200],
@@ -441,7 +453,7 @@ const styles = StyleSheet.create({
     color: Colors.neutral[500],
   },
   searchWrap: {
-    backgroundColor: Colors.white,
+    backgroundColor: Colors.surface,
     borderRadius: 14,
     borderWidth: 1,
     borderColor: Colors.neutral[200],
@@ -464,7 +476,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     borderRadius: 12,
-    backgroundColor: Colors.neutral[100],
+    backgroundColor: Colors.surface,
   },
   bankRow: { flexDirection: 'row', gap: 10 },
   bankOption: {
@@ -472,7 +484,7 @@ const styles = StyleSheet.create({
     gap: 6,
     padding: 14,
     borderRadius: 16,
-    backgroundColor: Colors.white,
+    backgroundColor: Colors.surface,
     borderWidth: 1,
     borderColor: Colors.neutral[200],
     minWidth: 76,
@@ -480,17 +492,18 @@ const styles = StyleSheet.create({
   bankOptionSelected: { borderColor: Colors.brand[500], backgroundColor: Colors.brand[50] },
   bankName: { fontSize: 12, fontFamily: 'Inter_600SemiBold', color: Colors.neutral[600] },
   bankNameSelected: { color: Colors.brand[600] },
-  bankRate: { fontSize: 13, fontFamily: 'Inter_700Bold', color: Colors.neutral[400] },
+  bankRate: { fontSize: 13, fontFamily: 'Inter_700Bold', color: Colors.neutral[500] },
   bankRateSelected: { color: Colors.brand[500] },
   resultCard: {
-    backgroundColor: Colors.white,
+    backgroundColor: Colors.surface,
     borderRadius: 20,
     padding: 24,
     borderWidth: 1.5,
     borderColor: Colors.brand[200],
     gap: 4,
+    ...shadows.card,
   },
-  resultLabel: { fontSize: 13, fontFamily: 'Inter_400Regular', color: Colors.neutral[400] },
+  resultLabel: { fontSize: 13, fontFamily: 'Inter_400Regular', color: Colors.neutral[500] },
   resultTotal: {
     fontSize: 44,
     fontFamily: 'Inter_700Bold',
@@ -507,7 +520,7 @@ const styles = StyleSheet.create({
   resultInvested: {
     fontSize: 13,
     fontFamily: 'Inter_500Medium',
-    color: Colors.neutral[400],
+    color: Colors.neutral[500],
     marginTop: 2,
   },
   resultProfit: {
@@ -517,22 +530,23 @@ const styles = StyleSheet.create({
   resultMonthly: {
     fontSize: 14,
     fontFamily: 'Inter_500Medium',
-    color: Colors.neutral[400],
+    color: Colors.neutral[500],
     marginTop: 2,
   },
   vsCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: Colors.white,
+    backgroundColor: Colors.surface,
     borderRadius: 16,
     padding: 16,
     marginTop: 10,
     borderWidth: 1,
     borderColor: Colors.neutral[100],
+    ...shadows.card,
   },
   vsItem: { flex: 1, gap: 4 },
   vsArrow: { paddingHorizontal: 12 },
-  vsItemLabel: { fontSize: 12, fontFamily: 'Inter_500Medium', color: Colors.neutral[400] },
+  vsItemLabel: { fontSize: 12, fontFamily: 'Inter_500Medium', color: Colors.neutral[500] },
   vsItemValue: {
     fontSize: 20,
     fontFamily: 'Inter_700Bold',
@@ -552,7 +566,7 @@ const styles = StyleSheet.create({
   taxNote: {
     fontSize: 12,
     fontFamily: 'Inter_400Regular',
-    color: Colors.neutral[300],
+    color: Colors.neutral[400],
     marginTop: 12,
   },
   emptyHint: {
@@ -564,7 +578,7 @@ const styles = StyleSheet.create({
   emptyHintText: {
     fontSize: 15,
     fontFamily: 'Inter_400Regular',
-    color: Colors.neutral[300],
+    color: Colors.neutral[400],
     textAlign: 'center',
     lineHeight: 22,
   },

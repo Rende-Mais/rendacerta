@@ -1,5 +1,5 @@
-import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, Image, StyleSheet } from 'react-native';
 import { Bank } from '@/constants/data';
 
 interface BankLogoProps {
@@ -8,6 +8,25 @@ interface BankLogoProps {
 }
 
 export function BankLogo({ bank, size = 40 }: BankLogoProps) {
+  const [imageError, setImageError] = useState(false);
+
+  if (bank.logoUrl && !imageError) {
+    return (
+      <Image
+        source={{ uri: bank.logoUrl }}
+        style={[
+          styles.image,
+          {
+            width: size,
+            height: size,
+            borderRadius: size / 4,
+          },
+        ]}
+        onError={() => setImageError(true)}
+      />
+    );
+  }
+
   return (
     <View
       style={[
@@ -33,5 +52,8 @@ const styles = StyleSheet.create({
   text: {
     color: '#FFFFFF',
     fontFamily: 'Inter_700Bold',
+  },
+  image: {
+    resizeMode: 'contain',
   },
 });

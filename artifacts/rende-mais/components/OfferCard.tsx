@@ -8,7 +8,7 @@ import {
 } from 'react-native';
 import { router } from 'expo-router';
 import * as Haptics from 'expo-haptics';
-import { Bank, calculateReturn, formatCurrency } from '@/constants/data';
+import { Bank, CURRENT_CDI_RATE, calculateReturnWithBaseCdi, formatCurrency } from '@/constants/data';
 import { Colors } from '@/constants/colors';
 import { BankLogo } from './BankLogo';
 import { LiquidityPill } from './LiquidityPill';
@@ -17,14 +17,28 @@ import { AppIcon } from '@/components/ui/AppIcon';
 interface OfferCardProps {
   bank: Bank;
   investmentAmount?: number;
+  currentCdiRate?: number;
   index?: number;
+  isBest?: boolean;
   onInvestPress?: (bank: Bank) => void;
 }
 
-export function OfferCard({ bank, investmentAmount = 1000, onInvestPress }: OfferCardProps) {
+export function OfferCard({
+  bank,
+  investmentAmount = 1000,
+  currentCdiRate = CURRENT_CDI_RATE,
+  isBest = false,
+  onInvestPress,
+}: OfferCardProps) {
   const scale = useRef(new Animated.Value(1)).current;
 
-  const { monthly } = calculateReturn(investmentAmount, bank.cdiRate, 12, bank.hasTax);
+  const { monthly } = calculateReturnWithBaseCdi(
+    investmentAmount,
+    bank.cdiRate,
+    12,
+    bank.hasTax,
+    currentCdiRate,
+  );
 
   const handleCardPress = () => {
     Haptics.selectionAsync();
@@ -46,7 +60,7 @@ export function OfferCard({ bank, investmentAmount = 1000, onInvestPress }: Offe
   return (
     <Animated.View style={{ transform: [{ scale }] }}>
       <TouchableOpacity
-        style={[styles.card, bank.isRecommended && styles.topCard]}
+        style={[styles.card, isBest && styles.topCard]}
         onPress={handleCardPress}
         onPressIn={handlePressIn}
         onPressOut={handlePressOut}
@@ -59,7 +73,7 @@ export function OfferCard({ bank, investmentAmount = 1000, onInvestPress }: Offe
             <Text style={styles.bankName}>{bank.name}</Text>
             <LiquidityPill type={bank.liquidity} />
           </View>
-          {bank.isRecommended && (
+          {isBest && (
             <View style={styles.bestBadge}>
               <Text style={styles.bestBadgeText}>Melhor</Text>
             </View>
@@ -97,11 +111,11 @@ export function OfferCard({ bank, investmentAmount = 1000, onInvestPress }: Offe
 
         {/* CTA */}
         <TouchableOpacity
-          style={[styles.cta, bank.isRecommended && styles.ctaPrimary]}
+          style={[styles.cta, isBest && styles.ctaPrimary]}
           onPress={handleInvestPress}
           activeOpacity={0.8}
         >
-          <Text style={[styles.ctaText, bank.isRecommended && styles.ctaTextPrimary]}>
+          <Text style={[styles.ctaText, isBest && styles.ctaTextPrimary]}>
             Investir na {bank.shortName}
           </Text>
         </TouchableOpacity>
@@ -112,7 +126,7 @@ export function OfferCard({ bank, investmentAmount = 1000, onInvestPress }: Offe
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: Colors.white,
+    backgroundColor: Colors.surface,
     borderRadius: 20,
     padding: 20,
     marginBottom: 14,

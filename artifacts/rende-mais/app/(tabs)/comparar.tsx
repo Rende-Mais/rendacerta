@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -8,16 +8,17 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as Haptics from 'expo-haptics';
-import { Colors } from '@/constants/colors';
+import { Colors, shadows } from '@/constants/colors';
 import {
   BANKS,
   Bank,
-  calculateReturn,
+  calculateReturnWithBaseCdi,
   calculateSavingsReturn,
   formatCurrency,
   LIQUIDITY_LABELS,
 } from '@/constants/data';
 import { BankLogo } from '@/components/BankLogo';
+import { useAppData } from '@/providers/AppDataProvider';
 
 const INVESTMENT_VALUES = [1000, 5000, 10000, 50000];
 const PERIOD_MONTHS = [
@@ -27,10 +28,22 @@ const PERIOD_MONTHS = [
 ];
 
 export default function CompararScreen() {
+  const { banks, currentCdiRate } = useAppData();
+  const sourceBanks = banks.length > 0 ? banks : BANKS;
   const insets = useSafeAreaInsets();
   const [selectedBanks, setSelectedBanks] = useState<string[]>([BANKS[0].id, BANKS[2].id]);
   const [investmentValue, setInvestmentValue] = useState(5000);
   const [months, setMonths] = useState(12);
+
+  useEffect(() => {
+    setSelectedBanks((prev) => {
+      const valid = prev.filter((id) => sourceBanks.some((bank) => bank.id === id));
+      if (valid.length > 0) {
+        return valid;
+      }
+      return sourceBanks.slice(0, 2).map((bank) => bank.id);
+    });
+  }, [sourceBanks]);
 
   const toggleBank = (id: string) => {
     Haptics.selectionAsync();
@@ -42,7 +55,10 @@ export default function CompararScreen() {
     });
   };
 
-  const comparedBanks = BANKS.filter((b) => selectedBanks.includes(b.id));
+  const comparedBanks = sourceBanks.filter((b) => selectedBanks.includes(b.id));
+  const bestBankId = comparedBanks.length > 0
+    ? comparedBanks.reduce((best, b) => b.cdiRate > best.cdiRate ? b : best).id
+    : null;
   const savingsReturn = calculateSavingsReturn(investmentValue, months);
 
   return (
@@ -98,24 +114,31 @@ export default function CompararScreen() {
         {/* Bank selector */}
         <View style={styles.section}>
           <Text style={styles.sectionLabel}>Selecionar bancos</Text>
-          <View style={styles.bankGrid}>
-            {BANKS.map((bank) => {
-              const isSelected = selectedBanks.includes(bank.id);
-              return (
-                <TouchableOpacity
-                  key={bank.id}
-                  style={[styles.bankChip, isSelected && styles.bankChipSelected]}
-                  onPress={() => toggleBank(bank.id)}
-                  activeOpacity={0.8}
-                >
-                  <BankLogo bank={bank} size={24} />
-                  <Text style={[styles.bankChipText, isSelected && styles.bankChipTextSelected]}>
-                    {bank.shortName}
-                  </Text>
-                </TouchableOpacity>
-              );
-            })}
-          </View>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.bankScrollContent}
+          >
+            <View style={styles.bankChipRow}>
+              {sourceBanks.map((bank) => {
+                const isSelected = selectedBanks.includes(bank.id);
+                return (
+                  <TouchableOpacity
+                    key={bank.id}
+                    style={[styles.bankChip, isSelected && styles.bankChipSelected]}
+                    onPress={() => toggleBank(bank.id)}
+                    activeOpacity={0.8}
+                  >
+                    <BankLogo bank={bank} size={20} />
+                    <Text style={[styles.bankChipText, isSelected && styles.bankChipTextSelected]}>
+                      {bank.shortName}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+          </ScrollView>
+          <Text style={styles.bankSelectorHint}>{selectedBanks.length}/3 selecionados</Text>
         </View>
 
         {/* Results */}
@@ -124,11 +147,17 @@ export default function CompararScreen() {
             <Text style={styles.sectionLabel}>Resultado</Text>
             <View style={styles.compareCards}>
               {comparedBanks.map((bank) => {
-                const { net, monthly } = calculateReturn(investmentValue, bank.cdiRate, months, bank.hasTax);
+                const { net, monthly } = calculateReturnWithBaseCdi(
+                  investmentValue,
+                  bank.cdiRate,
+                  months,
+                  bank.hasTax,
+                  currentCdiRate,
+                );
                 const extraVsSavings = net - savingsReturn;
 
                 return (
-                  <View key={bank.id} style={[styles.compareCard, bank.isRecommended && styles.compareCardTop]}>
+                  <View key={bank.id} style={[styles.compareCard, bank.id === bestBankId && styles.compareCardTop]}>
                     <View style={styles.compareHeader}>
                       <BankLogo bank={bank} size={38} />
                       <View style={styles.compareHeaderText}>
@@ -137,7 +166,7 @@ export default function CompararScreen() {
                           {bank.cdiRate.toFixed(1)}% CDI - {bank.hasTax ? 'Com imposto' : 'Sem imposto'}
                         </Text>
                       </View>
-                      {bank.isRecommended && (
+                      {bank.id === bestBankId && (
                         <View style={styles.topBadgeInline}>
                           <Text style={styles.topBadgeText}>Melhor</Text>
                         </View>
@@ -152,7 +181,7 @@ export default function CompararScreen() {
                         <Text style={styles.metricValue}>{formatCurrency(net)}</Text>
                       </View>
                       <View style={styles.metricItem}>
-                        <Text style={styles.metricLabel}>Media por mes</Text>
+                        <Text style={styles.metricLabel}>Média por mês</Text>
                         <Text style={styles.metricValue}>{formatCurrency(monthly)}</Text>
                       </View>
                     </View>
@@ -174,7 +203,7 @@ export default function CompararScreen() {
 
                     {extraVsSavings > 0 && (
                       <View style={styles.vsRow}>
-                        <Text style={styles.vsText}>+{formatCurrency(extraVsSavings)} vs poupanca</Text>
+                        <Text style={styles.vsText}>+{formatCurrency(extraVsSavings)} vs poupança</Text>
                       </View>
                     )}
                   </View>
@@ -202,12 +231,12 @@ const styles = StyleSheet.create({
   header: {
     paddingHorizontal: 20,
     paddingBottom: 24,
-    backgroundColor: Colors.white,
+    backgroundColor: Colors.surface,
     borderBottomWidth: 1,
     borderBottomColor: Colors.neutral[100],
   },
   title: { fontSize: 28, fontFamily: 'Inter_700Bold', color: Colors.neutral[950] },
-  subtitle: { fontSize: 14, fontFamily: 'Inter_400Regular', color: Colors.neutral[400], marginTop: 4 },
+  subtitle: { fontSize: 14, fontFamily: 'Inter_400Regular', color: Colors.neutral[500], marginTop: 4 },
   section: {
     paddingHorizontal: 20,
     marginTop: 24,
@@ -215,7 +244,7 @@ const styles = StyleSheet.create({
   sectionLabel: {
     fontSize: 12,
     fontFamily: 'Inter_600SemiBold',
-    color: Colors.neutral[400],
+    color: Colors.neutral[500],
     textTransform: 'uppercase',
     letterSpacing: 0.8,
     marginBottom: 10,
@@ -225,36 +254,44 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 9,
     borderRadius: 999,
-    backgroundColor: Colors.white,
+    backgroundColor: Colors.surface,
     borderWidth: 1,
     borderColor: Colors.neutral[200],
   },
-  pillActive: { backgroundColor: Colors.neutral[950], borderColor: Colors.neutral[950] },
+  pillActive: { backgroundColor: Colors.brand[50], borderColor: Colors.brand[500] },
   pillText: { fontSize: 13, fontFamily: 'Inter_500Medium', color: Colors.neutral[700] },
-  pillTextActive: { color: Colors.white },
-  bankGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
+  pillTextActive: { color: Colors.brand[600] },
+  bankScrollContent: { paddingRight: 20 },
+  bankChipRow: { flexDirection: 'row', gap: 8 },
   bankChip: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
-    paddingHorizontal: 14,
-    paddingVertical: 8,
+    gap: 6,
+    paddingHorizontal: 12,
+    paddingVertical: 7,
     borderRadius: 999,
-    backgroundColor: Colors.white,
+    backgroundColor: Colors.surface,
     borderWidth: 1,
     borderColor: Colors.neutral[200],
   },
   bankChipSelected: { borderColor: Colors.brand[500], backgroundColor: Colors.brand[50] },
-  bankChipText: { fontSize: 13, fontFamily: 'Inter_600SemiBold', color: Colors.neutral[600] },
+  bankChipText: { fontSize: 12, fontFamily: 'Inter_600SemiBold', color: Colors.neutral[600] },
   bankChipTextSelected: { color: Colors.brand[600] },
+  bankSelectorHint: {
+    marginTop: 10,
+    fontSize: 12,
+    fontFamily: 'Inter_500Medium',
+    color: Colors.neutral[400],
+  },
   compareCards: { gap: 12 },
   compareCard: {
-    backgroundColor: Colors.white,
+    backgroundColor: Colors.surface,
     borderRadius: 16,
     padding: 16,
     borderWidth: 1,
     borderColor: Colors.neutral[100],
     gap: 12,
+    ...shadows.card,
   },
   compareCardTop: { borderColor: Colors.brand[300], borderWidth: 1.5 },
   compareHeader: {
@@ -264,14 +301,14 @@ const styles = StyleSheet.create({
   },
   compareHeaderText: { flex: 1 },
   compareName: { fontSize: 15, fontFamily: 'Inter_700Bold', color: Colors.neutral[950] },
-  compareMeta: { fontSize: 12, fontFamily: 'Inter_500Medium', color: Colors.neutral[400], marginTop: 2 },
+  compareMeta: { fontSize: 12, fontFamily: 'Inter_500Medium', color: Colors.neutral[500], marginTop: 2 },
   topBadgeInline: {
     backgroundColor: Colors.brand[500],
     paddingHorizontal: 10,
     paddingVertical: 4,
     borderRadius: 999,
   },
-  topBadgeText: { color: Colors.white, fontSize: 11, fontFamily: 'Inter_700Bold' },
+  topBadgeText: { color: Colors.white, fontSize: 12, fontFamily: 'Inter_700Bold' },
   metricRow: { flexDirection: 'row', gap: 12 },
   metricItem: {
     flex: 1,
@@ -282,7 +319,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: Colors.neutral[100],
   },
-  metricLabel: { fontSize: 11, fontFamily: 'Inter_500Medium', color: Colors.neutral[400] },
+  metricLabel: { fontSize: 12, fontFamily: 'Inter_500Medium', color: Colors.neutral[500] },
   metricValue: { fontSize: 16, fontFamily: 'Inter_700Bold', color: Colors.neutral[950], marginTop: 4 },
   metricValueSmall: { fontSize: 12, fontFamily: 'Inter_600SemiBold', color: Colors.neutral[700], marginTop: 4 },
   vsRow: {
@@ -294,15 +331,16 @@ const styles = StyleSheet.create({
   },
   vsText: { fontSize: 12, fontFamily: 'Inter_600SemiBold', color: Colors.brand[600] },
   savingsRef: {
-    backgroundColor: Colors.white,
+    backgroundColor: Colors.surface,
     borderRadius: 14,
     padding: 16,
     marginTop: 12,
     borderWidth: 1,
     borderColor: Colors.neutral[100],
     gap: 2,
+    ...shadows.card,
   },
-  savingsRefLabel: { fontSize: 12, fontFamily: 'Inter_500Medium', color: Colors.neutral[400] },
+  savingsRefLabel: { fontSize: 12, fontFamily: 'Inter_500Medium', color: Colors.neutral[500] },
   savingsRefValue: { fontSize: 20, fontFamily: 'Inter_700Bold', color: Colors.neutral[600] },
-  savingsRefSub: { fontSize: 11, fontFamily: 'Inter_400Regular', color: Colors.neutral[300] },
+  savingsRefSub: { fontSize: 12, fontFamily: 'Inter_400Regular', color: Colors.neutral[400] },
 });

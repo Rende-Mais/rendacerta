@@ -46,6 +46,6 @@ const styles = StyleSheet.create({
     lineHeight: 16,
   },
   textSm: {
-    fontSize: 11,
+    fontSize: 12,
   },
 });

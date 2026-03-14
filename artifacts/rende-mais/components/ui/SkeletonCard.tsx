@@ -53,7 +53,7 @@ export function SkeletonCard() {
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: Colors.white,
+    backgroundColor: Colors.surface,
     borderRadius: 16,
     padding: 16,
     marginBottom: 12,

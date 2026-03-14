@@ -4,6 +4,7 @@ import {
   Text,
   StyleSheet,
   TouchableOpacity,
+  ScrollView,
 } from 'react-native';
 import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -54,12 +55,19 @@ export default function PorQuantoTempo() {
   };
 
   return (
-    <View style={[styles.container, { paddingTop: insets.top + 20, paddingBottom: insets.bottom + 24 }]}>
+    <ScrollView
+      style={styles.container}
+      contentContainerStyle={[
+        styles.containerContent,
+        { paddingTop: insets.top + 20, paddingBottom: insets.bottom + 24 },
+      ]}
+      showsVerticalScrollIndicator={false}
+    >
       <ProgressDots current={2} />
 
-        <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-          <AppIcon name="arrow-left" size={22} color={Colors.neutral[700]} />
-        </TouchableOpacity>
+      <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
+        <AppIcon name="arrow-left" size={22} color={Colors.neutral[700]} />
+      </TouchableOpacity>
 
       <View style={styles.content}>
         <Text style={styles.headline}>Quando você pode precisar do dinheiro?</Text>
@@ -103,15 +111,18 @@ export default function PorQuantoTempo() {
         <Text style={styles.buttonText}>Próximo</Text>
         <AppIcon name="arrow-right" size={20} color={Colors.white} />
       </TouchableOpacity>
-    </View>
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.white,
+    backgroundColor: Colors.background,
+  },
+  containerContent: {
     paddingHorizontal: 24,
+    flexGrow: 1,
   },
   backButton: {
     width: 40,
@@ -157,7 +168,7 @@ const styles = StyleSheet.create({
     borderRadius: 14,
     padding: 16,
     gap: 14,
-    backgroundColor: Colors.white,
+    backgroundColor: Colors.surface,
   },
   optionSelected: {
     borderColor: Colors.brand[500],
@@ -184,7 +195,7 @@ const styles = StyleSheet.create({
   optionSub: {
     fontSize: 12,
     fontFamily: 'Inter_400Regular',
-    color: Colors.neutral[400],
+    color: Colors.neutral[500],
     marginTop: 2,
   },
   optionSubSelected: { color: Colors.brand[500] },

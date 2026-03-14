@@ -4,6 +4,7 @@ import {
   Text,
   StyleSheet,
   TouchableOpacity,
+  ScrollView,
 } from 'react-native';
 import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -14,9 +15,9 @@ import { Colors } from '@/constants/colors';
 import { AmountRange, STORAGE_KEYS } from '@/constants/storage';
 
 const OPTIONS: { key: AmountRange; label: string; sub: string }[] = [
-  { key: 'ate_1k', label: 'Ate R$ 1.000', sub: 'Perfeito para comecar' },
+  { key: 'ate_1k', label: 'Até R$ 1.000', sub: 'Perfeito para começar' },
   { key: '1k_5k', label: 'R$ 1.000 a R$ 5.000', sub: 'Boa faixa de entrada' },
-  { key: '5k_20k', label: 'R$ 5.000 a R$ 20.000', sub: 'Boas opcoes disponiveis' },
+  { key: '5k_20k', label: 'R$ 5.000 a R$ 20.000', sub: 'Boas opções disponíveis' },
   { key: '20k_50k', label: 'R$ 20.000 a R$ 50.000', sub: 'Mais possibilidades' },
   { key: 'acima_50k', label: 'Acima de R$ 50.000', sub: 'Melhores taxas do mercado' },
 ];
@@ -56,7 +57,14 @@ export default function QuantoInvestir() {
   };
 
   return (
-    <View style={[styles.container, { paddingTop: insets.top + 20, paddingBottom: insets.bottom + 24 }]}>
+    <ScrollView
+      style={styles.container}
+      contentContainerStyle={[
+        styles.containerContent,
+        { paddingTop: insets.top + 20, paddingBottom: insets.bottom + 24 },
+      ]}
+      showsVerticalScrollIndicator={false}
+    >
       <ProgressDots current={1} />
 
       <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
@@ -104,15 +112,18 @@ export default function QuantoInvestir() {
         <Text style={styles.buttonText}>Próximo</Text>
         <AppIcon name="arrow-right" size={20} color={Colors.white} />
       </TouchableOpacity>
-    </View>
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.white,
+    backgroundColor: Colors.background,
+  },
+  containerContent: {
     paddingHorizontal: 24,
+    flexGrow: 1,
   },
   backButton: {
     width: 40,
@@ -164,7 +175,7 @@ const styles = StyleSheet.create({
     borderColor: Colors.neutral[200],
     borderRadius: 14,
     padding: 16,
-    backgroundColor: Colors.white,
+    backgroundColor: Colors.surface,
   },
   optionSelected: {
     borderColor: Colors.brand[500],
@@ -186,7 +197,7 @@ const styles = StyleSheet.create({
   optionSub: {
     fontSize: 13,
     fontFamily: 'Inter_400Regular',
-    color: Colors.neutral[400],
+    color: Colors.neutral[500],
     marginTop: 2,
   },
   optionSubSelected: {
