@@ -12,7 +12,6 @@ import {
   Platform,
 } from 'react-native';
 import { BlurView } from 'expo-blur';
-import { LinearGradient } from 'expo-linear-gradient';
 import * as Haptics from 'expo-haptics';
 import { Colors, shadows } from '@/constants/colors';
 import { AppIcon } from '@/components/ui/AppIcon';
@@ -82,7 +81,7 @@ export function FilterSheet({ visible, filters, onApply, onClose }: FilterSheetP
   const [draft, setDraft] = React.useState<FilterState>(filters);
   const [contentHeight, setContentHeight] = React.useState(0);
   const [viewportHeight, setViewportHeight] = React.useState(0);
-  const [showScrollHint, setShowScrollHint] = React.useState(false);
+  const [scrollOffset, setScrollOffset] = React.useState(0);
   const { isDesktop } = useResponsiveLayout();
   const isWebDesktop = Platform.OS === 'web' && isDesktop;
 
@@ -103,7 +102,7 @@ export function FilterSheet({ visible, filters, onApply, onClose }: FilterSheetP
 
   useEffect(() => {
     if (!visible) return;
-    setShowScrollHint(contentHeight > viewportHeight + 24);
+    setScrollOffset(0);
   }, [visible, contentHeight, viewportHeight]);
 
   const set = <K extends keyof FilterState>(key: K, val: FilterState[K]) => {
@@ -163,8 +162,7 @@ export function FilterSheet({ visible, filters, onApply, onClose }: FilterSheetP
           onLayout={(event) => setViewportHeight(event.nativeEvent.layout.height)}
           onContentSizeChange={(_, height) => setContentHeight(height)}
           onScroll={({ nativeEvent }) => {
-            const remaining = nativeEvent.contentSize.height - (nativeEvent.contentOffset.y + nativeEvent.layoutMeasurement.height);
-            setShowScrollHint(remaining > 24);
+            setScrollOffset(nativeEvent.contentOffset.y);
           }}
           scrollEventThrottle={16}
         >
@@ -286,19 +284,22 @@ export function FilterSheet({ visible, filters, onApply, onClose }: FilterSheetP
             </View>
           </View>
         </ScrollView>
-        {showScrollHint && isWebDesktop && (
-          <LinearGradient
-            pointerEvents="none"
-            colors={['rgba(9,9,11,0)', 'rgba(9,9,11,0.3)']}
-            style={styles.scrollHintFade}
-          />
-        )}
-        {showScrollHint && (
-          <View pointerEvents="none" style={[styles.scrollHintWrap, isWebDesktop && styles.scrollHintWrapDesktop]}>
-            <View style={styles.scrollHint}>
-              <Text style={styles.scrollHintText}>Role para ver mais filtros</Text>
-              <AppIcon name="caret-right" size={14} color={Colors.neutral[300]} style={{ transform: [{ rotate: '90deg' }] }} />
-            </View>
+        {contentHeight > viewportHeight + 4 && (
+          <View pointerEvents="none" style={styles.scrollTrack}>
+            <View
+              style={[
+                styles.scrollThumb,
+                {
+                  height: Math.max(34, (viewportHeight / contentHeight) * viewportHeight),
+                  transform: [{
+                    translateY:
+                      ((viewportHeight - Math.max(34, (viewportHeight / contentHeight) * viewportHeight)) *
+                        Math.min(scrollOffset, Math.max(0, contentHeight - viewportHeight))) /
+                      Math.max(1, contentHeight - viewportHeight),
+                  }],
+                },
+              ]}
+            />
           </View>
         )}
 
@@ -498,38 +499,20 @@ const styles = StyleSheet.create({
   toggleLabel: { fontSize: 14, fontFamily: 'Inter_600SemiBold', color: Colors.neutral[950] },
   toggleSub: { fontSize: 12, fontFamily: 'Inter_400Regular', color: Colors.neutral[400], marginTop: 2 },
   toggleSep: { height: 1, backgroundColor: Colors.neutral[100], marginLeft: 64 },
-  scrollHintWrap: {
+  scrollTrack: {
     position: 'absolute',
-    left: 0,
-    right: 0,
-    bottom: 114,
-    alignItems: 'center',
-  },
-  scrollHintWrapDesktop: {
-    bottom: 90,
-  },
-  scrollHintFade: {
-    position: 'absolute',
-    left: 0,
-    right: 0,
-    bottom: 82,
-    height: 88,
-  },
-  scrollHint: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    backgroundColor: 'rgba(9,9,11,0.78)',
+    top: 78,
+    bottom: 86,
+    right: 6,
+    width: 4,
     borderRadius: 999,
-    paddingHorizontal: 12,
-    paddingVertical: 7,
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.08)',
+    backgroundColor: 'rgba(22,163,74,0.2)',
+    overflow: 'hidden',
   },
-  scrollHintText: {
-    fontSize: 12,
-    fontFamily: 'Inter_500Medium',
-    color: Colors.neutral[200],
+  scrollThumb: {
+    width: 4,
+    borderRadius: 999,
+    backgroundColor: Colors.brand[500],
   },
   ctaBar: {
     position: 'absolute',

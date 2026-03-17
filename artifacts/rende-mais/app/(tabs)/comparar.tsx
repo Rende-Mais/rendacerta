@@ -133,16 +133,17 @@ export default function CompararScreen() {
         {/* Bank selector */}
         <View style={styles.section}>
           <Text style={styles.sectionLabel}>Selecionar bancos</Text>
-          <View style={styles.bankChipRow}>
-            {sourceBanks.map((bank) => {
-              const isSelected = selectedBanks.includes(bank.id);
-              return (
-                <TouchableOpacity
-                  key={bank.id}
-                  style={[styles.bankChip, isSelected && styles.bankChipSelected]}
-                  onPress={() => toggleBank(bank.id)}
-                  activeOpacity={0.8}
-                >
+          {isDesktop ? (
+            <View style={styles.bankChipRow}>
+              {sourceBanks.map((bank) => {
+                const isSelected = selectedBanks.includes(bank.id);
+                return (
+                  <TouchableOpacity
+                    key={bank.id}
+                    style={[styles.bankChip, isSelected && styles.bankChipSelected]}
+                    onPress={() => toggleBank(bank.id)}
+                    activeOpacity={0.8}
+                  >
                     <BankLogo bank={bank} size={20} />
                     <Text style={[styles.bankChipText, isSelected && styles.bankChipTextSelected]}>
                       {bank.shortName}
@@ -150,7 +151,33 @@ export default function CompararScreen() {
                   </TouchableOpacity>
                 );
               })}
-          </View>
+            </View>
+          ) : (
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.bankChipScrollContent}
+            >
+              <View style={styles.bankChipRowMobile}>
+                {sourceBanks.map((bank) => {
+                  const isSelected = selectedBanks.includes(bank.id);
+                  return (
+                    <TouchableOpacity
+                      key={bank.id}
+                      style={[styles.bankChip, isSelected && styles.bankChipSelected]}
+                      onPress={() => toggleBank(bank.id)}
+                      activeOpacity={0.8}
+                    >
+                      <BankLogo bank={bank} size={20} />
+                      <Text style={[styles.bankChipText, isSelected && styles.bankChipTextSelected]}>
+                        {bank.shortName}
+                      </Text>
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
+            </ScrollView>
+          )}
           <Text style={styles.bankSelectorHint}>{selectedBanks.length}/3 selecionados</Text>
         </View>
 
@@ -278,6 +305,8 @@ const styles = StyleSheet.create({
   pillTextActive: { color: Colors.brand[600] },
   bankScrollContent: { paddingRight: 20 },
   bankChipRow: { flexDirection: 'row', gap: 8, flexWrap: 'wrap' },
+  bankChipRowMobile: { flexDirection: 'row', gap: 8 },
+  bankChipScrollContent: { paddingRight: 20 },
   bankChip: {
     flexDirection: 'row',
     alignItems: 'center',

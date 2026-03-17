@@ -323,7 +323,7 @@ export default function HomeScreen() {
 
         {/* Count */}
         <View style={[styles.listHeader, isWebDesktop && styles.listHeaderDesktop]}>
-          <Text style={styles.listCount}>
+          <Text style={[styles.listCount, isWebDesktop && styles.listCountDesktop]}>
             {filteredBanks.length} {filteredBanks.length === 1 ? 'opção encontrada' : 'opções encontradas'}
           </Text>
           {activeCount === 0 && (
@@ -452,6 +452,7 @@ const styles = StyleSheet.create({
   filterBtnDesktop: {
     height: 46,
     paddingHorizontal: 16,
+    marginRight: 26,
     minWidth: 118,
     transitionDuration: '160ms' as unknown as undefined,
     transitionProperty: 'background-color, border-color, box-shadow, transform' as unknown as undefined,
@@ -636,6 +637,9 @@ const styles = StyleSheet.create({
     textTransform: 'uppercase',
     letterSpacing: 0.5,
   },
+  listCountDesktop: {
+    marginLeft: 12,
+  },
   listSub: {
     fontSize: 12,
     fontFamily: 'Inter_400Regular',
@@ -644,7 +648,7 @@ const styles = StyleSheet.create({
   listSubDesktop: {
     textAlign: 'right',
     marginLeft: 10,
-    marginRight: 8,
+    marginRight: 40,
     marginBottom: 1,
   },
 

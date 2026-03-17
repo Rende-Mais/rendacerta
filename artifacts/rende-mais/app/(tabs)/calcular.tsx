@@ -305,24 +305,51 @@ export default function CalcularScreen() {
               </TouchableOpacity>
             )}
           </View>
-          <View style={[styles.bankRow, { flexWrap: 'wrap' }, isDesktop && styles.bankRowDesktop]}>
-            {filteredBanks.map((bank) => (
-              <TouchableOpacity
-                key={bank.id}
-                style={[styles.bankOption, isDesktop && styles.bankOptionDesktop, selectedBankId === bank.id && styles.bankOptionSelected]}
-                onPress={() => { Haptics.selectionAsync(); setSelectedBankId(bank.id); }}
-                activeOpacity={0.8}
-              >
-                <BankLogo bank={bank} size={isDesktop ? 22 : 32} />
-                <Text style={[styles.bankName, selectedBankId === bank.id && styles.bankNameSelected]}>
-                  {bank.shortName}
-                </Text>
-                <Text style={[styles.bankRate, selectedBankId === bank.id && styles.bankRateSelected]}>
-                  {bank.cdiRate.toFixed(1)}%
-                </Text>
-              </TouchableOpacity>
-            ))}
-          </View>
+          {isDesktop ? (
+            <View style={[styles.bankRow, styles.bankRowDesktop]}>
+              {filteredBanks.map((bank) => (
+                <TouchableOpacity
+                  key={bank.id}
+                  style={[styles.bankOption, styles.bankOptionDesktop, selectedBankId === bank.id && styles.bankOptionSelected]}
+                  onPress={() => { Haptics.selectionAsync(); setSelectedBankId(bank.id); }}
+                  activeOpacity={0.8}
+                >
+                  <BankLogo bank={bank} size={22} />
+                  <Text style={[styles.bankName, selectedBankId === bank.id && styles.bankNameSelected]}>
+                    {bank.shortName}
+                  </Text>
+                  <Text style={[styles.bankRate, selectedBankId === bank.id && styles.bankRateSelected]}>
+                    {bank.cdiRate.toFixed(1)}%
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          ) : (
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.bankRowMobileScroll}
+            >
+              <View style={styles.bankRowMobile}>
+                {filteredBanks.map((bank) => (
+                  <TouchableOpacity
+                    key={bank.id}
+                    style={[styles.bankOption, selectedBankId === bank.id && styles.bankOptionSelected]}
+                    onPress={() => { Haptics.selectionAsync(); setSelectedBankId(bank.id); }}
+                    activeOpacity={0.8}
+                  >
+                    <BankLogo bank={bank} size={32} />
+                    <Text style={[styles.bankName, selectedBankId === bank.id && styles.bankNameSelected]}>
+                      {bank.shortName}
+                    </Text>
+                    <Text style={[styles.bankRate, selectedBankId === bank.id && styles.bankRateSelected]}>
+                      {bank.cdiRate.toFixed(1)}%
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            </ScrollView>
+          )}
         </View>
 
         {/* Result */}
@@ -498,6 +525,8 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.surface,
   },
   bankRow: { flexDirection: 'row', gap: 10 },
+  bankRowMobile: { flexDirection: 'row', gap: 10 },
+  bankRowMobileScroll: { paddingRight: 20 },
   bankOption: {
     alignItems: 'center',
     gap: 6,
@@ -516,9 +545,12 @@ const styles = StyleSheet.create({
     borderRadius: 999,
     minWidth: 0,
     gap: 6,
+    maxWidth: '100%' as unknown as number,
   },
   bankRowDesktop: {
     gap: 8,
+    flexWrap: 'wrap',
+    alignItems: 'flex-start',
   },
   bankName: { fontSize: 12, fontFamily: 'Inter_600SemiBold', color: Colors.neutral[600] },
   bankNameSelected: { color: Colors.brand[600] },

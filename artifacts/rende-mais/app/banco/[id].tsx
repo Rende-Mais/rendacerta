@@ -91,18 +91,21 @@ export default function BancoDetail() {
               </TouchableOpacity>
               <Text style={styles.headerTitle}>{bank.shortName}</Text>
             </View>
-            <TouchableOpacity style={[styles.headerInvestButton, isWebDesktop && styles.headerInvestButtonDesktop]} onPress={handleOpenAffiliate} activeOpacity={0.85}>
-              <Text style={styles.headerInvestText}>Abrir conta</Text>
-              <AppIcon name="external-link" size={14} color={Colors.white} />
-            </TouchableOpacity>
+            {isWebDesktop && (
+              <TouchableOpacity style={[styles.headerInvestButton, styles.headerInvestButtonDesktop]} onPress={handleOpenAffiliate} activeOpacity={0.85}>
+                <Text style={[styles.headerInvestText, styles.headerInvestTextDesktop]}>Abrir conta</Text>
+                <AppIcon name="external-link" size={16} color={Colors.white} />
+              </TouchableOpacity>
+            )}
           </View>
         </WebContainer>
       </View>
 
       <ScrollView
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingBottom: isDesktop ? 48 : insets.bottom + 28 }}
+        contentContainerStyle={{ paddingBottom: isDesktop ? 48 : insets.bottom + 104 }}
       >
+        <View style={styles.heroSection}>
         <WebContainer>
           <View style={styles.heroCard}>
             <View style={styles.heroTop}>
@@ -131,6 +134,10 @@ export default function BancoDetail() {
             )}
           </View>
 
+        </WebContainer>
+        </View>
+
+        <WebContainer>
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Simular rendimento</Text>
             <View style={styles.simulatorCard}>
@@ -255,6 +262,18 @@ export default function BancoDetail() {
           )}
         </WebContainer>
       </ScrollView>
+      {!isDesktop && (
+        <View style={[styles.footer, { paddingBottom: insets.bottom + 16 }]}>
+          <TouchableOpacity
+            style={styles.investButton}
+            onPress={handleOpenAffiliate}
+            activeOpacity={0.85}
+          >
+            <Text style={styles.investButtonText}>Abrir conta na {bank.shortName}</Text>
+            <AppIcon name="external-link" size={18} color={Colors.white} />
+          </TouchableOpacity>
+        </View>
+      )}
       <AffiliateSheet
         bank={bank}
         visible={affiliateVisible}
@@ -285,8 +304,8 @@ const styles = StyleSheet.create({
   },
   headerInnerDesktop: {
     position: 'relative',
-    minHeight: 38,
-    alignItems: 'flex-start',
+    minHeight: 42,
+    alignItems: 'center',
   },
   headerLeft: {
     flexDirection: 'row',
@@ -321,21 +340,30 @@ const styles = StyleSheet.create({
   },
   headerInvestButtonDesktop: {
     position: 'absolute',
-    top: 0,
+    top: '50%' as unknown as number,
     right: 0,
-    height: 38,
+    transform: [{ translateY: '-50%' as unknown as number }],
+    height: 42,
     borderRadius: 12,
-    paddingHorizontal: 14,
+    paddingHorizontal: 18,
   },
   headerInvestText: {
     color: Colors.white,
     fontSize: 13,
     fontFamily: 'Inter_600SemiBold',
   },
+  headerInvestTextDesktop: {
+    fontSize: 14,
+  },
   heroCard: {
-    backgroundColor: Colors.surface,
+    backgroundColor: 'transparent',
     padding: 20,
     gap: 14,
+  },
+  heroSection: {
+    backgroundColor: Colors.surface,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.neutral[100],
   },
   heroTop: {
     flexDirection: 'row',
@@ -550,6 +578,32 @@ const styles = StyleSheet.create({
     fontFamily: 'Inter_400Regular',
     color: Colors.neutral[500],
     textAlign: 'center',
+  },
+  footer: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    bottom: 0,
+    paddingHorizontal: 20,
+    paddingTop: 12,
+    backgroundColor: Colors.surface,
+    borderTopWidth: 1,
+    borderTopColor: Colors.neutral[100],
+  },
+  investButton: {
+    backgroundColor: Colors.brand[500],
+    borderRadius: 14,
+    height: 54,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 10,
+    ...shadows.level2,
+  },
+  investButtonText: {
+    color: Colors.white,
+    fontSize: 16,
+    fontFamily: 'Inter_600SemiBold',
   },
   notFound: {
     flex: 1,

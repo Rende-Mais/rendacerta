@@ -1,41 +1,65 @@
 import React, { useEffect, useRef } from 'react';
-import { Animated, StyleProp, StyleSheet, ViewStyle } from 'react-native';
+import { Animated, Easing, StyleProp, StyleSheet, ViewStyle } from 'react-native';
 import { useIsFocused } from '@react-navigation/native';
+import { usePathname } from 'expo-router';
 import { Colors } from '@/constants/colors';
 
 type ScreenFadeTransitionProps = {
   children: React.ReactNode;
   style?: StyleProp<ViewStyle>;
   durationMs?: number;
-  offsetY?: number;
+  offsetX?: number;
 };
+
+const TAB_ORDER = ['/(tabs)', '/(tabs)/index', '/(tabs)/comparar', '/(tabs)/calcular', '/(tabs)/perfil'] as const;
+let lastTabIndex: number | null = null;
+
+function getTabIndex(pathname: string): number | null {
+  if (pathname === '/') return 0;
+  const index = TAB_ORDER.indexOf(pathname as (typeof TAB_ORDER)[number]);
+  return index >= 0 ? index : null;
+}
 
 export function ScreenFadeTransition({
   children,
   style,
-  durationMs = 190,
-  offsetY = 4,
+  durationMs = 180,
+  offsetX = 26,
 }: ScreenFadeTransitionProps) {
   const isFocused = useIsFocused();
+  const pathname = usePathname();
   const opacity = useRef(new Animated.Value(1)).current;
-  const translateY = useRef(new Animated.Value(0)).current;
+  const translateX = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
     if (!isFocused) return;
 
-    // Keep the screen almost fully opaque to avoid white background flashes.
-    opacity.setValue(0.92);
-    translateY.setValue(offsetY);
+    const currentIndex = getTabIndex(pathname);
+    let startOffset = 0;
+
+    if (currentIndex !== null && lastTabIndex !== null && currentIndex !== lastTabIndex) {
+      const movingForward = currentIndex > lastTabIndex;
+      startOffset = movingForward ? offsetX : -offsetX;
+    }
+
+    if (currentIndex !== null) {
+      lastTabIndex = currentIndex;
+    }
+
+    opacity.setValue(0.9);
+    translateX.setValue(startOffset);
 
     const animation = Animated.parallel([
       Animated.timing(opacity, {
         toValue: 1,
-        duration: durationMs,
+        duration: Math.max(120, durationMs - 20),
+        easing: Easing.out(Easing.quad),
         useNativeDriver: true,
       }),
-      Animated.timing(translateY, {
+      Animated.timing(translateX, {
         toValue: 0,
         duration: durationMs,
+        easing: Easing.out(Easing.cubic),
         useNativeDriver: true,
       }),
     ]);
@@ -44,10 +68,10 @@ export function ScreenFadeTransition({
     return () => {
       animation.stop();
     };
-  }, [isFocused, durationMs, offsetY, opacity, translateY]);
+  }, [isFocused, pathname, durationMs, offsetX, opacity, translateX]);
 
   return (
-    <Animated.View style={[styles.container, style, { opacity, transform: [{ translateY }] }]}>
+    <Animated.View style={[styles.container, style, { opacity, transform: [{ translateX }] }]}>
       {children}
     </Animated.View>
   );
