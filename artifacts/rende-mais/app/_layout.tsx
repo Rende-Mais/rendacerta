@@ -59,6 +59,8 @@ function useWebStyles() {
       @font-face { font-family: 'Inter_700Bold'; src: local('Geist'); font-weight: 700; }
 
       * { font-family: 'Geist', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }
+      :root { color-scheme: dark; }
+      html, body, #root { background: #09090B; }
 
       /* Global cursor pointer for interactive elements */
       [role="button"], button, a, [data-clickable] { cursor: pointer !important; }
@@ -108,6 +110,22 @@ function useWebStyles() {
       doc.head.appendChild(themeMeta);
     }
     themeMeta.setAttribute('content', '#09090B');
+
+    let colorSchemeMeta = doc.querySelector('meta[name="color-scheme"]');
+    if (!colorSchemeMeta) {
+      colorSchemeMeta = doc.createElement('meta');
+      colorSchemeMeta.setAttribute('name', 'color-scheme');
+      doc.head.appendChild(colorSchemeMeta);
+    }
+    colorSchemeMeta.setAttribute('content', 'dark');
+
+    let appleStatusBarMeta = doc.querySelector('meta[name="apple-mobile-web-app-status-bar-style"]');
+    if (!appleStatusBarMeta) {
+      appleStatusBarMeta = doc.createElement('meta');
+      appleStatusBarMeta.setAttribute('name', 'apple-mobile-web-app-status-bar-style');
+      doc.head.appendChild(appleStatusBarMeta);
+    }
+    appleStatusBarMeta.setAttribute('content', 'black-translucent');
 
     // Description
     let descMeta = doc.querySelector('meta[name="description"]');

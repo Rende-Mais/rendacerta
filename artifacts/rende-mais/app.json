@@ -26,7 +26,9 @@
       }
     },
     "web": {
-      "favicon": "./assets/images/logo1greenbg.png"
+      "favicon": "./assets/images/logo1greenbg.png",
+      "themeColor": "#09090B",
+      "backgroundColor": "#09090B"
     },
     "react-native-google-mobile-ads": {
       "android_app_id": "ca-app-pub-3776982600781310~1770021128"

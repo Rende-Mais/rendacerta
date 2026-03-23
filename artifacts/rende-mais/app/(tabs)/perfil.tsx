@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -23,12 +23,12 @@ import { WebContainer } from '@/components/web/WebContainer';
 const LIQUIDITY_OPTS: { key: LiquidityPreference; label: string; sub: string }[] = [
   { key: 'imediata', label: 'Imediata', sub: 'Saque quando quiser' },
   { key: 'meses', label: 'Alguns meses', sub: 'Posso esperar um pouco' },
-  { key: 'longo', label: 'Longo prazo', sub: 'Não preciso por enquanto' },
+  { key: 'longo', label: 'Longo prazo', sub: 'NÃ£o preciso por enquanto' },
 ];
 
 const RISK_OPTS: { key: RiskPreference; label: string; sub: string }[] = [
   { key: 'taxa', label: 'Maior rendimento', sub: 'Priorizo a melhor taxa' },
-  { key: 'seguranca', label: 'Mais segurança', sub: 'Priorizo bancos conhecidos' },
+  { key: 'seguranca', label: 'Mais seguranÃ§a', sub: 'Priorizo bancos conhecidos' },
 ];
 
 export default function PerfilScreen() {
@@ -48,6 +48,21 @@ export default function PerfilScreen() {
     });
   }, []);
 
+  const resetProfileAndRestart = async () => {
+    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
+    try {
+      await AsyncStorage.multiSet([
+        [STORAGE_KEYS.ONBOARDING_COMPLETE, 'false'],
+        [STORAGE_KEYS.USER_PROFILE, ''],
+      ]);
+      await AsyncStorage.removeItem(STORAGE_KEYS.USER_PROFILE);
+      setProfile(null);
+      router.replace('/(onboarding)/boas-vindas');
+    } catch {
+      Alert.alert('Erro', 'Nao foi possivel reiniciar o questionario agora.');
+    }
+  };
+
   const handleReset = () => {
     if (isWebDesktop) {
       // Toggle inline form
@@ -62,27 +77,24 @@ export default function PerfilScreen() {
       setShowForm(!showForm);
       return;
     }
+
+    if (Platform.OS === 'web') {
+      const confirmed = globalThis.confirm('Voce vai responder novamente ao questionario inicial. Deseja continuar?');
+      if (!confirmed) return;
+      void resetProfileAndRestart();
+      return;
+    }
+
     Alert.alert(
       'Refazer as perguntas?',
-      'Você vai responder novamente ao questionário inicial.',
+      'Voce vai responder novamente ao questionario inicial.',
       [
         { text: 'Cancelar', style: 'cancel' },
         {
           text: 'Refazer',
           style: 'destructive',
-          onPress: async () => {
-            Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
-            try {
-              await AsyncStorage.multiSet([
-                [STORAGE_KEYS.ONBOARDING_COMPLETE, 'false'],
-                [STORAGE_KEYS.USER_PROFILE, ''],
-              ]);
-              await AsyncStorage.removeItem(STORAGE_KEYS.USER_PROFILE);
-              setProfile(null);
-              router.replace('/(onboarding)/boas-vindas');
-            } catch {
-              Alert.alert('Erro', 'Nao foi possivel reiniciar o questionario agora.');
-            }
+          onPress: () => {
+            void resetProfileAndRestart();
           },
         },
       ]
@@ -112,8 +124,8 @@ export default function PerfilScreen() {
 
   const getRiskLabel = () => {
     switch (profile?.riskPref) {
-      case 'taxa': return 'Maior taxa possível';
-      case 'seguranca': return 'Segurança em primeiro lugar';
+      case 'taxa': return 'Maior taxa possÃ­vel';
+      case 'seguranca': return 'SeguranÃ§a em primeiro lugar';
       default: return '-';
     }
   };
@@ -128,7 +140,7 @@ export default function PerfilScreen() {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingBottom: 110 }}
       >
-        {/* Header — full width */}
+        {/* Header â€” full width */}
         <View style={[styles.header, { paddingTop: isDesktop ? 32 : insets.top + 20 }]}>
           <WebContainer style={{ paddingHorizontal: 20 }}>
             <Text style={styles.title}>Perfil</Text>
@@ -153,10 +165,10 @@ export default function PerfilScreen() {
         {/* Preferences */}
         {profile && (
           <View style={styles.section}>
-            <Text style={styles.sectionLabel}>Suas preferências</Text>
+            <Text style={styles.sectionLabel}>Suas preferÃªncias</Text>
             <View style={styles.card}>
               <View style={styles.row}>
-                <Text style={styles.rowLabel}>Valor disponível</Text>
+                <Text style={styles.rowLabel}>Valor disponÃ­vel</Text>
                 <Text style={styles.rowValue}>
                   {profile.availableAmount ? AMOUNT_RANGES[profile.availableAmount].label : '-'}
                 </Text>
@@ -186,7 +198,7 @@ export default function PerfilScreen() {
               </View>
               <View style={styles.rateDivider} />
               <View style={styles.rateItem}>
-                <Text style={styles.rateName}>Poupança</Text>
+                <Text style={styles.rateName}>PoupanÃ§a</Text>
                 <Text style={styles.rateNum}>8,26%</Text>
               </View>
               <View style={styles.rateDivider} />
@@ -195,34 +207,34 @@ export default function PerfilScreen() {
                 <Text style={[styles.rateNum, { color: Colors.warning.DEFAULT }]}>4,26%</Text>
               </View>
             </View>
-            <Text style={styles.ratesNote}>Valores anuais · referência de março/2026</Text>
+            <Text style={styles.ratesNote}>Valores anuais Â· referÃªncia de marÃ§o/2026</Text>
           </View>
         </View>
 
         {/* FGC explainer */}
         <View style={styles.section}>
-          <Text style={styles.sectionLabel}>O que é o FGC?</Text>
+          <Text style={styles.sectionLabel}>O que Ã© o FGC?</Text>
           <View style={[styles.card, { padding: 18 }]}>
             <View style={styles.fgcTop}>
               <View style={styles.fgcIcon}>
                 <AppIcon name="shield" size={18} color={Colors.fgc.badge} />
               </View>
-              <Text style={styles.fgcTitle}>Fundo Garantidor de Créditos</Text>
+              <Text style={styles.fgcTitle}>Fundo Garantidor de CrÃ©ditos</Text>
             </View>
             <Text style={styles.fgcBody}>
-              Garante até{' '}
-              <Text style={styles.fgcHighlight}>R$ 250 mil por banco</Text>. Se a instituição tiver algum problema, o governo devolve seu dinheiro. É uma proteção criada pelo Banco Central.
+              Garante atÃ©{' '}
+              <Text style={styles.fgcHighlight}>R$ 250 mil por banco</Text>. Se a instituiÃ§Ã£o tiver algum problema, o governo devolve seu dinheiro. Ã‰ uma proteÃ§Ã£o criada pelo Banco Central.
             </Text>
           </View>
         </View>
 
         {/* Settings */}
         <View style={styles.section}>
-          <Text style={styles.sectionLabel}>Configurações</Text>
+          <Text style={styles.sectionLabel}>ConfiguraÃ§Ãµes</Text>
           <View style={styles.card}>
             <TouchableOpacity style={styles.menuItem} onPress={handleReset} activeOpacity={0.7}>
               <AppIcon name="sliders" size={18} color={Colors.neutral[500]} />
-              <Text style={styles.menuLabel}>{isWebDesktop ? 'Definir perfil' : 'Refazer questionário'}</Text>
+              <Text style={styles.menuLabel}>Definir perfil</Text>
               <AppIcon name="chevron-right" size={16} color={Colors.neutral[300]} />
             </TouchableOpacity>
             {/* Inline form for web */}
@@ -254,7 +266,7 @@ export default function PerfilScreen() {
                   ))}
                 </View>
 
-                <Text style={styles.formLabel}>O que é mais importante?</Text>
+                <Text style={styles.formLabel}>O que Ã© mais importante?</Text>
                 <View style={styles.formChipRow}>
                   {RISK_OPTS.map(({ key, label }) => (
                     <TouchableOpacity
@@ -268,7 +280,7 @@ export default function PerfilScreen() {
                 </View>
 
                 <TouchableOpacity style={styles.formSaveBtn} onPress={handleFormSave} activeOpacity={0.85}>
-                  <Text style={styles.formSaveBtnText}>Salvar preferências</Text>
+                  <Text style={styles.formSaveBtnText}>Salvar preferÃªncias</Text>
                 </TouchableOpacity>
               </View>
             )}
@@ -289,7 +301,7 @@ export default function PerfilScreen() {
         <View style={styles.footer}>
           <Text style={styles.footerVersion}>Rende Mais v1.0.0</Text>
           <Text style={styles.footerDisclaimer}>
-            As taxas exibidas são indicativas e podem variar. Não constituem recomendação de investimento.
+            As taxas exibidas sÃ£o indicativas e podem variar. NÃ£o constituem recomendaÃ§Ã£o de investimento.
           </Text>
         </View>
         </WebContainer>
@@ -474,3 +486,5 @@ const styles = StyleSheet.create({
     color: Colors.white,
   },
 });
+
+
